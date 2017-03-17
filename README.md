@@ -5,7 +5,7 @@ Marcelo H Moraes
 marceloh220@hotmail.com
 
 Cores Marcelino disponivel em
-htpps://github.com/marceloh220/Marcelino
+https://github.com/marceloh220/Marcelino
 
 Codigo fontes do climatizador disponivel em
 https://github.com/marceloh220/Climatizador
