@@ -14,6 +14,7 @@ Videos do desenvolvimento
 https://www.youtube.com/watch?v=5_P18dyZHlA&list=PLAFROJL-VFf2txQNDm3TZ7mB_tUi9bb8s
 
 Copyright (c) 2017 Marcelo Henrique Moraes
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
