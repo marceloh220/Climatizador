@@ -16,12 +16,19 @@ https://www.youtube.com/watch?v=5_P18dyZHlA&list=PLAFROJL-VFf2txQNDm3TZ7mB_tUi9b
 **************************************************************************************
 
 Cores Marcelino e Codigos do climatizador são distribuidas sob licensa GPL 3.0
+
 core/
+
 object/
+
 library/
+
 climatizador.cpp
+
 climatizador.elf
+
 climatizador.hex
+
 Makefile
 
 **************************************************************************************
@@ -55,15 +62,20 @@ Libusb é uma ferramenta para reconhecimento de driver para ferramentas de uploa
 (FTI/arduino/usbasp...)
 
 tool/libusb0.dll
+
 tool/libusb0.sys
+
 tool/libusb-win32-bin
 
 Para detalhes de Ferramenta
 tool/libusb-win32-bin/README.txt
 
 Para licensas:
+
 tool/libusb-win32-bin/COPYING_GPL.txt
+
 tool/libusb-win32-bin/COPYING_LGPL.txt
+
 tool/libusb-win32-bin/installer_license.txt
 
 **************************************************************************************
