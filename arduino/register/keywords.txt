@@ -1,0 +1,10 @@
+######################
+Register	KEYWORD1
+
+######################
+set			KEYWORD2
+clear		KEYWORD2
+toggle		KEYWORD2
+reg			KEYWORD2
+ifset		KEYWORD2
+ifclear		KEYWORD2
