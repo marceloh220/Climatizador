@@ -116,7 +116,7 @@ void IHM8574::cursor(uint8_t mode) {
 	cmd(mode,1);
 }
 
-void IHM8574::display(uint8_t state) {
+void IHM8574::sleep(uint8_t state) {
 	clear();
 	if(state) {
 		cmd(0x0C,1);
@@ -139,4 +139,20 @@ void IHM8574::set(uint8_t col, uint8_t row) {
 void IHM8574::background(uint8_t state) {
 	_background=state;
 	cmd(0x00,1);
+}
+
+void IHM8574::create(uint8_t location, uint8_t charmap[]) {
+	location &= 0x7;
+	cmd(0x40 | (location << 3),1);
+	for (int i=0; i<8; i++) {
+		write(charmap[i]);
+	}
+}
+
+void IHM8574::create(uint8_t location, uint8_t charmap, uint8_t i) {
+	if(!i) {
+		location &= 0x7;
+		cmd(0x40 | (location << 3),1);
+	}
+	write(charmap);
 }

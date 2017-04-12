@@ -19,7 +19,6 @@
 
 #include <Arduino.h>
 #include <twi.h>
-#include <cmath.h>
 
 #define A1IE		0
 #define A2IE		1
@@ -36,7 +35,7 @@
 #define	EN32kHz		3
 #define OSF			7
 
-class DS3231 : private TWI, private Math {
+class DS3231 : private TWI {
 private:
 	uint8_t pos = 0;
 	const char* _week[8] = 		{
@@ -67,10 +66,12 @@ private:
 
 	uint8_t get(uint8_t address);
 	void put(uint8_t data, uint8_t address);
+	long tobcd(long _dec);
+	long todec(long _bcd);
 public:
 	DS3231();
-	uint8_t sec(uint8_t data = 255);
-	uint8_t min(uint8_t data = 255);
+	uint8_t second(uint8_t data = 255);
+	uint8_t minute(uint8_t data = 255);
 	uint8_t hour(uint8_t data = 255);
 	uint8_t week(uint8_t data = 255);
 	uint8_t day(uint8_t data = 255);

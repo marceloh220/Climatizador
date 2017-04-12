@@ -76,47 +76,55 @@ void DS3231::put(uint8_t data, uint8_t address) {
 	TWI::stop();	
 }
 
-//public
-uint8_t DS3231::sec(uint8_t data) {
-	if(data != 255)
-		put(Math::tobcd(data),SEC);
-	return Math::todec(get(SEC));
+long DS3231::tobcd(long _dec) {
+	return ( ( (_dec / 10) * 16 ) + (_dec % 10) );	
 }
 
-uint8_t DS3231::min(uint8_t data) {
+long DS3231::todec(long _bcd) {
+	return ((_bcd & 0xF0) >> 4) * 10 + (_bcd & 0x0F);
+}
+
+//public
+uint8_t DS3231::second(uint8_t data) {
 	if(data != 255)
-		put(Math::tobcd(data),MIN);
-	return Math::todec(get(MIN));
+		put(tobcd(data),SEC);
+	return todec(get(SEC));
+}
+
+uint8_t DS3231::minute(uint8_t data) {
+	if(data != 255)
+		put(tobcd(data),MIN);
+	return todec(get(MIN));
 }
 
 uint8_t DS3231::hour(uint8_t data) {
 	if(data != 255)
-		put(Math::tobcd(data),HOUR);
-	return Math::todec(get(HOUR));
+		put(tobcd(data),HOUR);
+	return todec(get(HOUR));
 }
 
 uint8_t DS3231::week(uint8_t data) {
 	if(data != 255)
-		put(Math::tobcd(data),WEEK);
-	return Math::todec(get(WEEK));
+		put(tobcd(data),WEEK);
+	return todec(get(WEEK));
 }
 
 uint8_t DS3231::day(uint8_t data) {
 	if(data != 255)
-		put(DATE,Math::tobcd(data));
-	return Math::todec(get(DATE));
+		put(DATE,tobcd(data));
+	return todec(get(DATE));
 }
 
 uint8_t DS3231::month(uint8_t data) {
 	if(data != 255)
-		put(Math::tobcd(data),MON);
-	return Math::todec(get(MON));
+		put(tobcd(data),MON);
+	return todec(get(MON));
 }
 
 uint8_t DS3231::year(uint8_t data) {
 	if(data != 255)
-		put(Math::tobcd(data),YEAR);
-	return Math::todec(get(YEAR));
+		put(tobcd(data),YEAR);
+	return todec(get(YEAR));
 }
 
 float DS3231::temp() {
