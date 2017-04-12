@@ -8,7 +8,7 @@ TWI twi;
 #define relayADDRESS 0b01000010
 
 
-//Biblioteca Endereco TWI do CI PCF8574A para display 16x2
+//Biblioteca e Endereco TWI do CI PCF8574A para display 16x2
 #include <IHM8574.h>
 // 0100 A2 A1 A0 R/~W
 #define displayADDRESS 0b01000000
@@ -75,12 +75,14 @@ void setup()
 void loop() 
 {
 
+  //Mostra no display a temperatura lida do DS3231
   display.set(0, 0);
   display.print("Temp: ");
   display.print(sensor.temp());
   display.write(1);
   display.print('C');
 
+  //Mostra no display o valor analogico lido no pino A3
   display.set(0, 1);
   display.print("Analogico: ");
   display.print(analogRead(A3));
