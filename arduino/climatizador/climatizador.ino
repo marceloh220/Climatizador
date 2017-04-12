@@ -1,7 +1,7 @@
 //Biblioteca para o hardwate TWI
+#include <twi.h>
 TWI twi;
-Delay delay;
-Analog analog;
+
 
 //Endereco TWI do CI PCF8574A para controle dos reles
 // 0100 A2 A1 A0 R/~W
@@ -68,7 +68,7 @@ void setup()
   for (int i = 0; i < 8; i++)
     display.create(1, get_symbol(i), i);
 
-  display.background(ON);   //Liga o background do display 16x2
+  display.background(1);   //Liga o background do display 16x2
 
 }
 
@@ -83,9 +83,9 @@ void loop()
 
   display.set(0, 1);
   display.print("Analogico: ");
-  display.print(analog.read(A3));
+  display.print(analogRead(A3));
   display.print("   ");
 
-  delay.ms(200);
+  delay(200);
 
 }
