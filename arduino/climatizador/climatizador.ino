@@ -1,4 +1,4 @@
-/*
+/**************************************************************************************************************************
 
    Autor: Marcelo Henrique Moraes
    E-mail: marceloh220@hotmail.com
@@ -30,13 +30,13 @@
 
     https://www.gnu.org/licenses/gpl-3.0.en.html
 
-*/
+***************************************************************************************************************************/
 
 
 
-/****************************************************
-               Bibliotecas
-****************************************************/
+/**************************************************************************************************************************
+                                                         Bibliotecas
+***************************************************************************************************************************/
 
 //Biblioteca para o hardware TWI
 #include <twi.h>
@@ -48,68 +48,68 @@
 #include <DS3231.h>
 
 
-/****************************************************
-              Macros para AVR
-****************************************************/
+/**************************************************************************************************************************
+                                                        Macros para AVR
+***************************************************************************************************************************/
 
 #define sbi(_sfr,_bit) (_sfr|=(1<<_bit))    //Set Bit In, para setar o bit (_bit) no registrador (_sfr)
 #define cbi(_sfr,_bit) (_sfr&=~(1<<_bit))   //Clear Bit In, para limpar o bit (_bit) no registrador (_sfr)
 #define tbi(_sfr,_bit) (_sfr^=(1<<_bit))    //TOGGLE Bit In, para alterar o esdado do bit (_bit) no registrador (_sfr)
 
-/****************************************************
+            /******************************************************************************
 
-   Bitwise
+                Bitwise (instruções C com logica Bit a Bit)
 
-   var|= a     =>   var = var | a
-   var &= ~a   =>   var = var & ~a
-   var ^= a    =>   var = var ^ a
+                var|= a     =>   var = var | a
+                var &= ~a   =>   var = var & ~a
+                var ^= a    =>   var = var ^ a
 
-   | or bit a bit (operacao logica OU realizada entre cada bit)
+                | or bit a bit (operacao logica OU realizada entre cada bit)
 
-     0b0101 0000
-   | 0b0001 1001
-     0b0101 1001
+                    0b0101 0000
+                  | 0b0001 1001
+                    0b0101 1001
 
-   & and bit a bit (operacao logica E realizada entre cada bit)
+                & and bit a bit (operacao logica E realizada entre cada bit)
 
-     0b0001 1001
-   & 0b1001 1000
-     0b0001 1000
+                    0b0001 1001
+                  & 0b1001 1000
+                    0b0001 1000
 
-   ^ xor bit a bit (operacao logica OUEXCLUSIVA realizada entre cada bit)
+                ^ xor bit a bit (operacao logica OU-EXCLUSIVA realizada entre cada bit)
 
-     0b0101 1001
-   ^ 0b1001 1000
-     0b1100 0001
+                    0b0101 1001
+                  ^ 0b1001 1000
+                    0b1100 0001
 
-   ~ complemento (inverte o estado de cada bit)
+                ~ complemento (inverte o estado de cada bit)
 
-     0b0101 0100
-    ~0b1010 1011
+                    0b0101 0100
+                   ~0b1010 1011
 
-   << shift left (move bit para a esquerda)
+                << shift left (move bit para a esquerda)
 
-     0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
-     0b0010 1000
+                    0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
+                    0b0010 1000
 
-     (1<<3) => 0b0000 1000
-     (3<<1) => 0b0000 0110
-
-
-   >> shift right (move bit para a direita)
-
-     0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
-     0b0001 0001
-
-     (128>>3) => 0b0001 0000
-     (160>>0) => 0b1010 0000
-
-*****************************************************/
+                    (1<<3) => 0b0000 1000
+                    (3<<1) => 0b0000 0110
 
 
-/****************************************************
-              Definicoes de Hardware
-****************************************************/
+                >> shift right (move bit para a direita)
+
+                    0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
+                    0b0001 0001
+
+                    (128>>3) => 0b0001 0000
+                    (160>>0) => 0b1010 0000
+
+            ******************************************************************************/
+
+
+/**************************************************************************************************************************
+                                                    Definicoes de Hardware
+***************************************************************************************************************************/
 
 //Endereco TWI do CI PCF8574A para controle dos reles
 // 0100 A2 A1 A0 R/~W
@@ -119,28 +119,18 @@
 // 0100 A2 A1 A0 R/~W
 #define displayADDRESS 0b01000000
 
+//Nomes diferenciados para LOW e HIGH
 #define DESLIGADO LOW
 #define LIGADO    HIGH
 
-//Teclas
-#define B0          0
-#define B1          1
-#define B2          2
-#define B3          3
-#define B4          4
-#define B5          5
-#define B6          6
-#define B7          7
-#define B8          8
-#define NENHUMA     9     //Quando nenhuma tecla pessionada
-
+//Pinos do Arduino
 #define pinTeclado A3     //Pino de leitura do teclado analogico
 #define pinLED     13     //Pino de LED on board da placa Arduino
 
 
-/****************************************************
-              Instancias de Objetos
-****************************************************/
+/**************************************************************************************************************************
+                                              Instancias de Objetos
+***************************************************************************************************************************/
 
 //Display instanciado com o nome "display"
 IHM8574 display(displayADDRESS);
@@ -151,34 +141,36 @@ DS3231 sensor;
 //Controle do Hardware TWI instanciado com o nome "twi"
 TWI twi;
 
-/****************************************************
-           Prototipo de funcoes auxiliares
-****************************************************/
 
-//Mostra no display a temperatura lida do DS3231
+/**************************************************************************************************************************
+                                               Prototipo de funcoes auxiliares
+***************************************************************************************************************************/
+
+//Funcao que mostra no display a temperatura lida do DS3231
 void mostraTemperatura();
 
-//Mostra no display o valor analogico do teclado lido pelo pino A3
+//Funcao que mostra no display o valor analogico do teclado lido pelo pino A3
 void mostraTeclado(char tecla);
 
 //Funcao que envia o estado dos reles para a placa de controle
-void enviarRele(char rele);
+void enviaRele(char rele);
 
 //Funcao de ligar  os reles
-void ligarRele(char rele);
+void ligaRele(char rele);
 
 //Funcao de alterar estado os reles
-void mudarRele(char rele);
+void inverteRele(char rele);
 
 //Funcao de desligar os reles
-void desligarRele(char rele);
+void desligaRele(char rele);
 
 //Funcao de leitura das teclas
 char leituraTeclado();
 
-/****************************************************
-               Constantes do sistema
-****************************************************/
+
+/**************************************************************************************************************************
+                                               Constantes do sistema
+***************************************************************************************************************************/
 
 //Macro de leitura de caracter salvo na memoria de programa
 #define get_pgm(m,p)   pgm_read_byte(&m[p])
@@ -209,19 +201,20 @@ const uint8_t rostinho[8] PROGMEM =
   0b00000000
 };
 
-/****************************************************
-               Variaveis de sistema
-****************************************************/
+
+/**************************************************************************************************************************
+                                                  Variaveis de sistema
+***************************************************************************************************************************/
 
 //Variavel de controle dos reles
 char relay = 0;
 
 //Variavel de controle do tempo
-unsigned long tempTecladoDisplay, tempLED;
+unsigned long temp200ms, temp1s;
 
-/****************************************************
-               Funcoes principais
-****************************************************/
+/**************************************************************************************************************************
+                                                   Funcoes principais
+***************************************************************************************************************************/
 
 //Funcao Arduino de configuracao do MCU
 void setup()
@@ -237,11 +230,15 @@ void setup()
   for (int i = 0; i < 8; i++)
     display.create(1, get_pgm(rostinho, i), i);
 
+
   //Liga o background do display
   display.background(LIGADO);
 
-  //Pino LED como saida
+  //Pino do LED como saida
   pinMode(pinLED, OUTPUT);
+
+  //Inicia com todos os reles desligado
+  enviaRele(0x00);
 
 }//fim da funcao setup
 
@@ -250,45 +247,35 @@ void loop()
 {
 
   //Tarefa realizada a cada 200 milisegundo
-  //Testa se passou 200ms
-  if ( millis() - tempTecladoDisplay >= 200) {
+  if ( ( millis() - temp200ms ) >= 200) {   //Testa se passou 200ms
 
-    byte lido = leituraTeclado();   //Realiza a leitura do teclado analogico
+    display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
+    mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
+    
+    display.set(0, 1);                      //Posiciona cursor do display na coluna 0 / linha 1
+    mostraTeclado();                        //Chama funcao de mostrar leitura do teclado no display
 
-    display.set(0, 0);              //Posiciona cursor do display na coluna 0/linha 0
-    mostraTemperatura();            //Chama funcao de mostrar temperatura no display
-    display.set(0, 1);              //Posiciona cursor do display na coluna 0/linha 1
-    mostraTeclado(lido);            //Chama funcao de mostrar leitura do teclado no display
+    temp200ms = millis();                   //Salva o tempo atual para nova tarefa apos 200ms
 
-    mudarRele(lido);                //Altera o estado do rele com botao apertado
-
-    tempTecladoDisplay = millis();  //Salva o tempo atual para nova tarefa apos 200ms
-
-  }//fim do test de 200ms
+  }//fim da tarefa de 200ms
 
   //Tarefa realizada a cada 1 segundo
-  //Testa se passou 1 segundo
-  if ( millis() - tempLED >= 1000) {
+  if ( ( millis() - temp1s ) >= 1000) {     //Testa se passou 1 segundo
 
-    if (leituraTeclado() == B8)     //Se o botao B8 foi pressionado
-      digitalWrite(pinLED, HIGH);   //Liga o led no pino 13
+    tbi(PORTB, PB5);                        //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
+    
+    temp1s = millis();                      //Salva o tempo atual para nova tarefa apos 1s
 
-    else                            //Se nao
-      tbi(PORTB, PB5);              //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
-
-    tempLED = millis();             //Salva o tempo atual para nova tarefa apos 1s
-
-  }//fim do test de 1s
-
+  }//fim da tarefa de 1s
 
 }//fim da funcao loop
 
 
-/****************************************************
-               Funcoes auxiliares
-****************************************************/
+/**************************************************************************************************************************
+                                                Funcoes auxiliares
+***************************************************************************************************************************/
 
-//Mostra no display a temperatura lida do DS3231
+//Funcao que mostra no display a temperatura lida do DS3231
 void mostraTemperatura()
 {
   display.print("Temp: ");            //Mostra string no display
@@ -299,71 +286,48 @@ void mostraTemperatura()
   display.write((int)1);              //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
 }//fim da funcao mostraTemperatura
 
-//Mostra no display o valor analogico do teclado lido pelo pino pinTeclado
-void mostraTeclado(char tecla)
+//Funcao que mostra no display o valor analogico do teclado lido pelo pino pinTeclado
+void mostraTeclado()
 {
   display.print("Tecla: ");               //Mostra string no display
   int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado
-  if (tecla == NENHUMA)                   //Se nenhuma tecla pessionada
-    display.print("NENHUMA");             //Mostra string no display
-  else                                    //Se nao
-    display.print((int)tecla);            //Mostra valor lido no teclado
+  display.print((int)teclado);            //Mostra valor lido no teclado
   display.print("      ");                //Mostra string no display
 }//fim da funcao mostraTeclado
 
 //Funcao que envia o estado dos reles para a placa de controle
-void enviarRele(char rele) {
+void enviaRele(char rele) {
   twi.start();              //Condicao inicial de transmissao de dados por TWI
   twi.send(relayADDRESS);   //Envia o endereco do CI PCF8574 que controla os reles
   twi.send(rele);           //Envia o estado dos reles
   twi.stop();               //Condicao de parada de transmissao de dados por TWI
 }//fim da funcao enviarRele
 
-//Funcao de ligar  os reles
-void ligarRele(char rele)
+//Funcao de ligar os reles
+void ligaRele(char rele)
 {
   sbi(relay, rele);         //Liga o rele passado
-  enviarRele(relay);        //Envia o estado dos reles para a placa de controle
-
+  enviaRele(relay);         //Envia o estado dos reles para a placa de controle
 }//fim da funcao ligarRele
 
 //Funcao de alterar estado os reles
-void mudarRele(char rele)
+void inverteRele(char rele)
 {
   tbi(relay, rele);         //Alterar o estado do rele passado
-  enviarRele(relay);        //Envia o estado dos reles para a placa de controle
-}//fim da funcao desligarRele
+  enviaRele(relay);         //Envia o estado dos reles para a placa de controle
+}//fim da funcao invertrRele
 
 //Funcao de desligar os reles
-void desligarRele(char rele)
+void desligaRele(char rele)
 {
   cbi(relay, rele);         //Desliga o rele passado
-  enviarRele(relay);        //Envia o estado dos reles para a placa de controle
+  enviaRele(relay);         //Envia o estado dos reles para a placa de controle
 }//fim da funcao desligarRele
 
 //Funcao de leitura das teclas
 char leituraTeclado()
 {
-  int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado analogico
-  if (teclado < 100)                      //Testa teclas e retorna tecla pressionada
-    return 0;
-  else if (teclado < 200)
-    return 1;
-  else if (teclado < 330)
-    return 2;
-  else if (teclado < 410)
-    return 3;
-  else if (teclado < 460)
-    return 4;
-  else if (teclado < 510)
-    return 5;
-  else if (teclado < 560)
-    return 6;
-  else if (teclado < 600)
-    return 7;
-  else if (teclado < 700)
-    return 8;
-
-  else                                //Se nenhuma tecla pressionada
-    return NENHUMA;
-}
+  
+  //Implementacao da funcao de leitura do teclado...
+  
+}//fim da funcao leituraTeclado
