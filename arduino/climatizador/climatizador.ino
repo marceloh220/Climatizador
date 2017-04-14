@@ -57,53 +57,53 @@
 #define tbi(_sfr,_bit) (_sfr^=(1<<_bit))    //TOGGLE Bit In, para alterar o esdado do bit (_bit) no registrador (_sfr)
 
 /****************************************************
- * 
- * Bitwise
- * 
- * var|= a     =>   var = var | a
- * var &= ~a   =>   var = var & ~a
- * var ^= a    =>   var = var ^ a
- * 
- * | or bit a bit (operacao logica OU realizada entre cada bit)
- * 
- *   0b0101 0000
- * | 0b0001 1001
- *   0b0101 1001
- * 
- * & and bit a bit (operacao logica E realizada entre cada bit)
- * 
- *   0b0001 1001
- * & 0b1001 1000
- *   0b0001 1000
- * 
- * ^ xor bit a bit (operacao logica OUEXCLUSIVA realizada entre cada bit)
- * 
- *   0b0101 1001
- * ^ 0b1001 1000
- *   0b1100 0001
- *   
- * ~ complemento (inverte o estado de cada bit)
- * 
- *   0b0101 0100
- *  ~0b1010 1011
- * 
- * << shift left (move bit para a esquerda)
- * 
- *   0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
- *   0b0010 1000
- *   
- *   (1<<3) => 0b0000 1000
- *   (3<<1) => 0b0000 0110
- * 
- * 
- * >> shift right (move bit para a direita)
- * 
- *   0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
- *   0b0001 0001
- *   
- *   (128>>3) => 0b0001 0000
- *   (160>>0) => 0b1010 0000
- * 
+
+   Bitwise
+
+   var|= a     =>   var = var | a
+   var &= ~a   =>   var = var & ~a
+   var ^= a    =>   var = var ^ a
+
+   | or bit a bit (operacao logica OU realizada entre cada bit)
+
+     0b0101 0000
+   | 0b0001 1001
+     0b0101 1001
+
+   & and bit a bit (operacao logica E realizada entre cada bit)
+
+     0b0001 1001
+   & 0b1001 1000
+     0b0001 1000
+
+   ^ xor bit a bit (operacao logica OUEXCLUSIVA realizada entre cada bit)
+
+     0b0101 1001
+   ^ 0b1001 1000
+     0b1100 0001
+
+   ~ complemento (inverte o estado de cada bit)
+
+     0b0101 0100
+    ~0b1010 1011
+
+   << shift left (move bit para a esquerda)
+
+     0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
+     0b0010 1000
+
+     (1<<3) => 0b0000 1000
+     (3<<1) => 0b0000 0110
+
+
+   >> shift right (move bit para a direita)
+
+     0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
+     0b0001 0001
+
+     (128>>3) => 0b0001 0000
+     (160>>0) => 0b1010 0000
+
 *****************************************************/
 
 
@@ -122,7 +122,20 @@
 #define DESLIGADO LOW
 #define LIGADO    HIGH
 
-#define pinTeclado A3
+//Teclas
+#define B0          0
+#define B1          1
+#define B2          2
+#define B3          3
+#define B4          4
+#define B5          5
+#define B6          6
+#define B7          7
+#define B8          8
+#define NENHUMA     9     //Quando nenhuma tecla pessionada
+
+#define pinTeclado A3     //Pino de leitura do teclado analogico
+#define pinLED     13     //Pino de LED on board da placa Arduino
 
 
 /****************************************************
@@ -218,17 +231,17 @@ void setup()
 
   //Salva caracter do simbolo de graus celcius na posicao 1 da memoria grafica do display
   for (int i = 0; i < 8; i++)
-    display.create(1, get_pgm(graus, i), i);
+    display.create(0, get_pgm(graus, i), i);
 
   //Salva caracter rostinho feliz na posicao 2 da memoria grafica do display
   for (int i = 0; i < 8; i++)
-    display.create(2, get_pgm(rostinho, i), i);
+    display.create(1, get_pgm(rostinho, i), i);
 
   //Liga o background do display
   display.background(LIGADO);
 
   //Pino LED como saida
-  pinMode(13, OUTPUT);
+  pinMode(pinLED, OUTPUT);
 
 }//fim da funcao setup
 
@@ -240,8 +253,6 @@ void loop()
   //Testa se passou 200ms
   if ( millis() - tempTecladoDisplay >= 200) {
 
-    tempTecladoDisplay = millis();  //Salva o tempo atual para nova tarefa apos 200ms
-
     byte lido = leituraTeclado();   //Realiza a leitura do teclado analogico
 
     display.set(0, 0);              //Posiciona cursor do display na coluna 0/linha 0
@@ -251,13 +262,22 @@ void loop()
 
     mudarRele(lido);                //Altera o estado do rele com botao apertado
 
+    tempTecladoDisplay = millis();  //Salva o tempo atual para nova tarefa apos 200ms
+
   }//fim do test de 200ms
 
   //Tarefa realizada a cada 1 segundo
   //Testa se passou 1 segundo
   if ( millis() - tempLED >= 1000) {
+
+    if (leituraTeclado() == B8)     //Se o botao B8 foi pressionado
+      digitalWrite(pinLED, HIGH);   //Liga o led no pino 13
+
+    else                            //Se nao
+      tbi(PORTB, PB5);              //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
+
     tempLED = millis();             //Salva o tempo atual para nova tarefa apos 1s
-    tbi(PORTB, PB5);                //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
+
   }//fim do test de 1s
 
 
@@ -274,9 +294,9 @@ void mostraTemperatura()
   display.print("Temp: ");            //Mostra string no display
   float temperatura = sensor.temp();  //Realiza a leitura da temperatura do sensor
   display.print(temperatura);         //Mostra temperatura no display
-  display.write(1);                   //Mostra caracter salvo na posicao 1 da memoria grafica do display (simbolo graus)
+  display.write((int)0);              //Mostra caracter salvo na posicao 0 da memoria grafica do display (simbolo graus)
   display.print("C  ");               //Mostra caracter no display
-  display.write(2);                   //Mostra caracter salvo na posicao 2 da memoria grafica do display (rostinho feliz)
+  display.write((int)1);              //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
 }//fim da funcao mostraTemperatura
 
 //Mostra no display o valor analogico do teclado lido pelo pino pinTeclado
@@ -284,7 +304,7 @@ void mostraTeclado(char tecla)
 {
   display.print("Tecla: ");               //Mostra string no display
   int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado
-  if (tecla == 9)                         //Se nenhuma tecla pessionada
+  if (tecla == NENHUMA)                   //Se nenhuma tecla pessionada
     display.print("NENHUMA");             //Mostra string no display
   else                                    //Se nao
     display.print((int)tecla);            //Mostra valor lido no teclado
@@ -324,8 +344,8 @@ void desligarRele(char rele)
 //Funcao de leitura das teclas
 char leituraTeclado()
 {
-  int teclado = analogRead(pinTeclado);
-  if (teclado < 100)
+  int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado analogico
+  if (teclado < 100)                      //Testa teclas e retorna tecla pressionada
     return 0;
   else if (teclado < 200)
     return 1;
@@ -344,6 +364,6 @@ char leituraTeclado()
   else if (teclado < 700)
     return 8;
 
-  else
-    return 9;
+  else                                //Se nenhuma tecla pressionada
+    return NENHUMA;
 }
