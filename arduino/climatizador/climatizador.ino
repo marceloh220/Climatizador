@@ -212,6 +212,13 @@ char relay = 0;
 //Variavel de controle do tempo
 unsigned long temp200ms, temp1s;
 
+//Variaveis de leitura analogica com algoritimo de media movel
+#define analogReadMAX     10        //Numero de leituras analogicas a se realizar
+int analog[analogReadMAX];          //Vetor de leituras analogicas
+int analogTotal;                    //Somatorio das leituras analogicas
+int analogAverage;                  //Media das leituras analogicas
+int analogInterator;                //Interador para leituras analogicas
+
 /**************************************************************************************************************************
                                                    Funcoes principais
 ***************************************************************************************************************************/
@@ -281,17 +288,26 @@ void mostraTemperatura()
   display.print("Temp: ");            //Mostra string no display
   float temperatura = sensor.temp();  //Realiza a leitura da temperatura do sensor
   display.print(temperatura);         //Mostra temperatura no display
-  display.write((int)0);              //Mostra caracter salvo na posicao 0 da memoria grafica do display (simbolo graus)
+  display.write((unsigned char)0);    //Mostra caracter salvo na posicao 0 da memoria grafica do display (simbolo graus)
   display.print("C  ");               //Mostra caracter no display
-  display.write((int)1);              //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
+  display.write((unsigned char)1);    //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
 }//fim da funcao mostraTemperatura
 
 //Funcao que mostra no display o valor analogico do teclado lido pelo pino pinTeclado
 void mostraTeclado()
 {
+
+  //algoritimo de madia movel
+  analogTotal -= analog[analogInterator];               //Subtrai do total uma leitura anterior
+  analog[analogInterator] = analogRead(pinTeclado);     //Realiza a leitura do teclado
+  analogTotal += analog[analogInterator++];             //Soma nova leitura ao total e incrementa o interador
+  analogAverage = analogTotal/analogReadMAX;            //Tira a media das leituras
+
+  if(analogInterator == analogReadMAX)                  //Se leituras chegaram ao limite do vetor
+    analogInterator = 0;                                //Retorna interador novamente para o inicio do vetor
+  
   display.print("Tecla: ");               //Mostra string no display
-  int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado
-  display.print((int)teclado);            //Mostra valor lido no teclado
+  display.print((int)analogAverage);      //Mostra valor lido no teclado
   display.print("      ");                //Mostra string no display
 }//fim da funcao mostraTeclado
 
