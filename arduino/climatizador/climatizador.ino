@@ -213,7 +213,7 @@ char relay = 0;
 unsigned long temp200ms, temp1s;
 
 //Variaveis de leitura analogica com algoritimo de media movel
-#define analogReadMAX     10        //Numero de leituras analogicas a se realizar
+#define analogReadMAX     20        //Numero de leituras analogicas a se realizar
 int analog[analogReadMAX];          //Vetor de leituras analogicas
 int analogTotal;                    //Somatorio das leituras analogicas
 int analogAverage;                  //Media das leituras analogicas
@@ -226,6 +226,9 @@ int analogInterator;                //Interador para leituras analogicas
 //Funcao Arduino de configuracao do MCU
 void setup()
 {
+
+  //Inicia a comunicacao USART RS232 do microcontrolador com um computador com velocidade assincrona de 9600 bauds/segundo
+  Serial.begin(9600);
 
   //display.creat(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
 
@@ -254,7 +257,7 @@ void loop()
 {
 
   //Tarefa realizada a cada 200 milisegundo
-  if ( ( millis() - temp200ms ) >= 200) {   //Testa se passou 200ms
+  if ( ( millis() - temp200ms ) >= 32) {   //Testa se passou 200ms
 
     display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
     mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
@@ -308,6 +311,7 @@ void mostraTeclado()
   
   display.print("Tecla: ");               //Mostra string no display
   display.print((int)analogAverage);      //Mostra valor lido no teclado
+  Serial.println((int)analogAverage);     //Mostra valor lido no teclado na interface Serial
   display.print("      ");                //Mostra string no display
 }//fim da funcao mostraTeclado
 
