@@ -56,55 +56,55 @@
 #define cbi(_sfr,_bit) (_sfr&=~(1<<_bit))   //Clear Bit In, para limpar o bit (_bit) no registrador (_sfr)
 #define tbi(_sfr,_bit) (_sfr^=(1<<_bit))    //TOGGLE Bit In, para alterar o esdado do bit (_bit) no registrador (_sfr)
 
-            /******************************************************************************
+/******************************************************************************
 
-                Bitwise (instruções C com logica Bit a Bit)
+    Bitwise (instruções C com logica Bit a Bit)
 
-                var|= a     =>   var = var | a
-                var &= ~a   =>   var = var & ~a
-                var ^= a    =>   var = var ^ a
+    var|= a     =>   var = var | a
+    var &= ~a   =>   var = var & ~a
+    var ^= a    =>   var = var ^ a
 
-                | or bit a bit (operacao logica OU realizada entre cada bit)
+    | or bit a bit (operacao logica OU realizada entre cada bit)
 
-                    0b0101 0000
-                  | 0b0001 1001
-                    0b0101 1001
+        0b0101 0000
+      | 0b0001 1001
+        0b0101 1001
 
-                & and bit a bit (operacao logica E realizada entre cada bit)
+    & and bit a bit (operacao logica E realizada entre cada bit)
 
-                    0b0001 1001
-                  & 0b1001 1000
-                    0b0001 1000
+        0b0001 1001
+      & 0b1001 1000
+        0b0001 1000
 
-                ^ xor bit a bit (operacao logica OU-EXCLUSIVA realizada entre cada bit)
+    ^ xor bit a bit (operacao logica OU-EXCLUSIVA realizada entre cada bit)
 
-                    0b0101 1001
-                  ^ 0b1001 1000
-                    0b1100 0001
+        0b0101 1001
+      ^ 0b1001 1000
+        0b1100 0001
 
-                ~ complemento (inverte o estado de cada bit)
+    ~ complemento (inverte o estado de cada bit)
 
-                    0b0101 0100
-                   ~0b1010 1011
+        0b0101 0100
+       ~0b1010 1011
 
-                << shift left (move bit para a esquerda)
+    << shift left (move bit para a esquerda)
 
-                    0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
-                    0b0010 1000
+        0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
+        0b0010 1000
 
-                    (1<<3) => 0b0000 1000
-                    (3<<1) => 0b0000 0110
+        (1<<3) => 0b0000 1000
+        (3<<1) => 0b0000 0110
 
 
-                >> shift right (move bit para a direita)
+    >> shift right (move bit para a direita)
 
-                    0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
-                    0b0001 0001
+        0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
+        0b0001 0001
 
-                    (128>>3) => 0b0001 0000
-                    (160>>0) => 0b1010 0000
+        (128>>3) => 0b0001 0000
+        (160>>0) => 0b1010 0000
 
-            ******************************************************************************/
+******************************************************************************/
 
 
 /**************************************************************************************************************************
@@ -149,7 +149,7 @@ TWI twi;
 //Funcao que mostra no display a temperatura lida do DS3231
 void mostraTemperatura();
 
-//Funcao que mostra no display o valor analogico do teclado lido pelo pino A3
+//Funcao que mostra no display o valor analogico do teclado
 void mostraTeclado(char tecla);
 
 //Funcao que envia o estado dos reles para a placa de controle
@@ -238,7 +238,8 @@ void setup()
   pinMode(pinLED, OUTPUT);
 
   //Inicia com todos os reles desligado
-  enviaRele(0x00);
+  for(int rele = 0; rele < 8; rele++)
+    desligaRele(rele);
 
 }//fim da funcao setup
 
@@ -249,9 +250,16 @@ void loop()
   //Tarefa realizada a cada 200 milisegundo
   if ( ( millis() - temp200ms ) >= 200) {   //Testa se passou 200ms
 
+    static int i;                           //Variavel int para intecacao com os reles
+
+    if (i == 8)                             //Quando chegar no ultimo rele, reinicia os reles
+      i = 0;
+
+    inverteRele(i++);                       //Inverte o estado dos reles
+
     display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
     mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
-    
+
     display.set(0, 1);                      //Posiciona cursor do display na coluna 0 / linha 1
     mostraTeclado();                        //Chama funcao de mostrar leitura do teclado no display
 
@@ -263,7 +271,7 @@ void loop()
   if ( ( millis() - temp1s ) >= 1000) {     //Testa se passou 1 segundo
 
     tbi(PORTB, PB5);                        //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
-    
+
     temp1s = millis();                      //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
@@ -327,7 +335,8 @@ void desligaRele(char rele)
 //Funcao de leitura das teclas
 char leituraTeclado()
 {
-  
+  char valorLido;
   //Implementacao da funcao de leitura do teclado...
-  
+  return valorLido;
+
 }//fim da funcao leituraTeclado
