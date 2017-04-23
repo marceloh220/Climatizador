@@ -207,12 +207,12 @@ const uint8_t rostinho[8] PROGMEM =
 ***************************************************************************************************************************/
 
 //Variavel de controle dos reles
-char relay = 0;
+unsigned char relay;
 
 //Variavel de controle do tempo
 unsigned long temp200ms, temp1s;
 
-//Variaveis de leitura analogica com algoritimo de media movel
+//Variaveis de leitura analogica com o algoritimo de media movel
 #define analogReadMAX     20        //Numero de leituras analogicas a se realizar
 int analog[analogReadMAX];          //Vetor de leituras analogicas
 int analogTotal;                    //Somatorio das leituras analogicas
@@ -256,6 +256,8 @@ void setup()
 void loop()
 {
 
+  static char i;                            //Variavel utilizada como interador que preserva o seu valor quando sai da funcao
+
   //Tarefa realizada a cada 200 milisegundo
   if ( ( millis() - temp200ms ) >= 32) {   //Testa se passou 200ms
 
@@ -264,6 +266,10 @@ void loop()
     
     display.set(0, 1);                      //Posiciona cursor do display na coluna 0 / linha 1
     mostraTeclado();                        //Chama funcao de mostrar leitura do teclado no display
+
+    inverteRele(i++);                       //Inverte o estado de um rele e posiciona o interador para alterar o proximo rele
+    if(i==9)                                //Se chegou ao oitavo rele
+      i = 0;                                //Posiciona o interador no primeiro rele
 
     temp200ms = millis();                   //Salva o tempo atual para nova tarefa apos 200ms
 
