@@ -17,8 +17,9 @@
 #ifndef MOTORDEPASSO_H
 #define MOTORDEPASSO_H
 
-#include <defines.h>
-#include <register.h>
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
 
 const uint8_t PROGMEM passos_depasso[8] = 	{
 									0b11111110,	//passo 0, inicio
@@ -36,13 +37,13 @@ private:
 
 	uint8_t passo = 0;
 	uint16_t p_passos = 0;
-	Register test;
+	uint8_t test = 0;
 	
 	void close() {
 		passo--;
 		if(passo==255)
 			passo=7;
-		uint8_t aux = pgm_get(passos_depasso,passo);
+		uint8_t aux = pgm_read_byte(&passos_depasso[passo]);
 		PORTB |= 0x0F;
 		PORTB &= aux;
 	}
@@ -51,7 +52,7 @@ private:
 		passo++;
 		if(passo>7)
 			passo = 0;
-		uint8_t aux = pgm_get(passos_depasso,passo);
+		uint8_t aux = pgm_read_byte(&passos_depasso[passo]);
 		PORTB |= 0x0F;
 		PORTB &= aux;
 	}
@@ -84,15 +85,15 @@ public:
 		else if(p_passos > 2900)
 			fecha();
 			
-		else if( test.ifset(0) )
+		else if( test&(1<<0) )
 			abre();
 		else
 			fecha();
 
 		if(p_passos == 2900)
-			test.clear(0);
+			test&=~(1<<0);
 		else if(p_passos == 600)
-			test.set(0);
+			test|=(1<<0);
 	}
 	
 	void para() {
@@ -102,12 +103,13 @@ public:
 	inline uint16_t passos() { return p_passos; }
 
 	void fechado() {
-		while( is_set(PINB,4) ) {
+		while( PINB&(1<<4) ) {
 			close();
 			_delay_us(1500);
 		}
 		p_passos = 0;
 		para();
-	}		
+	}
+	
 };
 #endif

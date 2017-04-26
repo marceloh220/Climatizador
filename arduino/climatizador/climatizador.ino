@@ -47,6 +47,9 @@
 //Biblioteca para uso do CI DS3231 ( RTC + Sensor de temperatura )
 #include <DS3231.h>
 
+#include <motordepasso.h>
+Passo ventilacao;
+
 
 /**************************************************************************************************************************
                                                         Macros para AVR
@@ -238,8 +241,19 @@ void setup()
   pinMode(pinLED, OUTPUT);
 
   //Inicia com todos os reles desligado
-  for(int rele = 0; rele < 8; rele++)
+  for (int rele = 0; rele < 8; rele++)
     desligaRele(rele);
+
+  ventilacao.fechado();
+
+  for (int i = 0; i < 1000; i++) {
+    ventilacao.fecha();
+    delay(2);
+  }
+  for (int i = 0; i < 1000; i++) {
+    ventilacao.abre();
+    delay(2);
+  }
 
 }//fim da funcao setup
 
