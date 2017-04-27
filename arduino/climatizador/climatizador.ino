@@ -9,8 +9,11 @@
    Esquematicos do projeto em formato PDF (Apenas leitura) e DSN (simulação Proteus 7.7)
    https://github.com/marceloh220/Climatizador/tree/master/Schematics
 
+   Maiores informacoes sobre bibliotecas consultar o projeto Marcelino
+   https://github.com/marceloh220/Marcelino.git
+
    Arduino IDE 1.8.2
-   Arduino/Genoino Uno (ATmega328/p)
+   Arduino/Genuino Uno (ATmega328/p)
    Cristal externo 16MHz
 
    Bibliotecas sem compatibilidade total com Familia Arduino
@@ -47,9 +50,6 @@
 //Biblioteca para uso do CI DS3231 ( RTC + Sensor de temperatura )
 #include <DS3231.h>
 
-#include <motordepasso.h>
-Passo ventilacao;
-
 
 /**************************************************************************************************************************
                                                         Macros para AVR
@@ -59,55 +59,55 @@ Passo ventilacao;
 #define cbi(_sfr,_bit) (_sfr&=~(1<<_bit))   //Clear Bit In, para limpar o bit (_bit) no registrador (_sfr)
 #define tbi(_sfr,_bit) (_sfr^=(1<<_bit))    //TOGGLE Bit In, para alterar o esdado do bit (_bit) no registrador (_sfr)
 
-/******************************************************************************
+            /******************************************************************************
 
-    Bitwise (instruções C com logica Bit a Bit)
+                Bitwise (instruções C com logica Bit a Bit)
 
-    var|= a     =>   var = var | a
-    var &= ~a   =>   var = var & ~a
-    var ^= a    =>   var = var ^ a
+                var|= a     =>   var = var | a
+                var &= ~a   =>   var = var & ~a
+                var ^= a    =>   var = var ^ a
 
-    | or bit a bit (operacao logica OU realizada entre cada bit)
+                | or bit a bit (operacao logica OU/OR realizada entre cada bit, garante que o bit esteja em nivel logico 1)
 
-        0b0101 0000
-      | 0b0001 1001
-        0b0101 1001
+                    0b0101 0000
+                  | 0b0001 1001
+                    0b0101 1001
 
-    & and bit a bit (operacao logica E realizada entre cada bit)
+                & and bit a bit (operacao logica E/AND realizada entre cada bit, garante que o bit esteja em nivel logico 0)
 
-        0b0001 1001
-      & 0b1001 1000
-        0b0001 1000
+                    0b0001 1001
+                  & 0b1001 1000
+                    0b0001 1000
 
-    ^ xor bit a bit (operacao logica OU-EXCLUSIVA realizada entre cada bit)
+                ^ xor bit a bit (operacao logica OU-EXCLUSIVA/EXCLUSIVE-OR realizada entre cada bit, altera o nivel logico do bit)
 
-        0b0101 1001
-      ^ 0b1001 1000
-        0b1100 0001
+                    0b0101 1001
+                  ^ 0b1001 1000
+                    0b1100 0001
 
-    ~ complemento (inverte o estado de cada bit)
+                ~ complemento (operacao logica NAO/NOT realizada em cada bit, inverte o estado de cada bit)
 
-        0b0101 0100
-       ~0b1010 1011
+                    0b0101 0100
+                   ~0b1010 1011
 
-    << shift left (move bit para a esquerda)
+                << shift left (desloca bit para a esquerda)
 
-        0b0100 0101 << 3    (move os bits 3 casas para a esquerda)
-        0b0010 1000
+                    0b0100 0101 << 3    (desloca os bits 3 casas para a esquerda)
+                    0b0010 1000
 
-        (1<<3) => 0b0000 1000
-        (3<<1) => 0b0000 0110
+                    (1<<3) => 0b0000 1000     (bit 1 foi deslocado 3 casas para a esquerda)
+                    (3<<1) => 0b0000 0110     (bit 1 e 2 foi deslocado 1 casa para a esquerda)
 
 
-    >> shift right (move bit para a direita)
+                >> shift right (desloca bit para a direita)
 
-        0b0100 0101 >> 2    (move os bits 2 casas para a esquerda)
-        0b0001 0001
+                    0b0100 0101 >> 2    (desloca os bits 2 casas para a esquerda)
+                    0b0001 0001
 
-        (128>>3) => 0b0001 0000
-        (160>>0) => 0b1010 0000
+                    (128>>3) => 0b0001 0000   (bit 7 foi deslocado 3 casas para a direita)
+                    (160>>0) => 0b1010 0000   (bit 7 e bit 5 deslocados 0 casas para a direita)
 
-******************************************************************************/
+            ******************************************************************************/
 
 
 /**************************************************************************************************************************
@@ -128,7 +128,7 @@ Passo ventilacao;
 
 //Pinos do Arduino
 #define pinTeclado A3     //Pino de leitura do teclado analogico
-#define pinLED     13     //Pino de LED on board da placa Arduino
+#define pinLED     13     //Pino de LED on board da placa Arduino UNO
 
 
 /**************************************************************************************************************************
@@ -136,13 +136,18 @@ Passo ventilacao;
 ***************************************************************************************************************************/
 
 //Display instanciado com o nome "display"
+//IHM8574 NomeDoObjeto(endereco do dispositivo TWI);
 IHM8574 display(displayADDRESS);
 
 //DS3231 instanciado com o nome "sensor"
+//DS3231 NomeDoObjeto;   //O construtor desta classe nao recebe parametros
 DS3231 sensor;
 
 //Controle do Hardware TWI instanciado com o nome "twi"
-TWI twi;
+//TWI NomeDoObjeto(modo, velocidade);
+//Modo são MASTER e SLAVE, ainda estou implementando as opcoes para inicializacao em modo SLAVE
+//Velocidades sao FAST(bit rate em 400kHz) e SLOW(bit rate em 100kHz)
+TWI twi;      //inicia twi no modo padrao MASTER e velocidade padrao FAST
 
 
 /**************************************************************************************************************************
@@ -152,7 +157,7 @@ TWI twi;
 //Funcao que mostra no display a temperatura lida do DS3231
 void mostraTemperatura();
 
-//Funcao que mostra no display o valor analogico do teclado
+//Funcao que mostra no display o valor analogico do teclado lido pelo pino A3
 void mostraTeclado(char tecla);
 
 //Funcao que envia o estado dos reles para a placa de controle
@@ -210,10 +215,17 @@ const uint8_t rostinho[8] PROGMEM =
 ***************************************************************************************************************************/
 
 //Variavel de controle dos reles
-char relay = 0;
+unsigned char relay;
 
 //Variavel de controle do tempo
-unsigned long temp200ms, temp1s;
+unsigned long temp10ms, temp500ms, temp1s;
+
+//Variaveis de leitura analogica com o algoritimo de media movel
+#define analogReadMAX     20        //Numero de leituras analogicas a se realizar
+int analog[analogReadMAX];          //Vetor de leituras analogicas
+int analogTotal;                    //Somatorio das leituras analogicas
+int analogAverage;                  //Media das leituras analogicas
+int analogInterator;                //Interador para leituras analogicas
 
 /**************************************************************************************************************************
                                                    Funcoes principais
@@ -223,13 +235,16 @@ unsigned long temp200ms, temp1s;
 void setup()
 {
 
-  //display.creat(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
+  //Inicia a comunicacao USART RS232 do microcontrolador com um computador com velocidade assincrona de 9600 bauds/segundo
+  Serial.begin(9600);
 
-  //Salva caracter do simbolo de graus celcius na posicao 1 da memoria grafica do display
+  //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
+
+  //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   for (int i = 0; i < 8; i++)
     display.create(0, get_pgm(graus, i), i);
 
-  //Salva caracter rostinho feliz na posicao 2 da memoria grafica do display
+  //Salva caracter rostinho feliz na posicao 1 da memoria grafica do display
   for (int i = 0; i < 8; i++)
     display.create(1, get_pgm(rostinho, i), i);
 
@@ -241,19 +256,7 @@ void setup()
   pinMode(pinLED, OUTPUT);
 
   //Inicia com todos os reles desligado
-  for (int rele = 0; rele < 8; rele++)
-    desligaRele(rele);
-
-  ventilacao.fechado();
-
-  for (int i = 0; i < 1000; i++) {
-    ventilacao.fecha();
-    delay(2);
-  }
-  for (int i = 0; i < 1000; i++) {
-    ventilacao.abre();
-    delay(2);
-  }
+  enviaRele(0x00);
 
 }//fim da funcao setup
 
@@ -261,31 +264,37 @@ void setup()
 void loop()
 {
 
-  //Tarefa realizada a cada 200 milisegundo
-  if ( ( millis() - temp200ms ) >= 200) {   //Testa se passou 200ms
+  static char i;                            //Variavel utilizada como interador que preserva o seu valor quando sai da funcao
 
-    static int i;                           //Variavel int para intecacao com os reles
-
-    if (i == 8)                             //Quando chegar no ultimo rele, reinicia os reles
-      i = 0;
-
-    inverteRele(i++);                       //Inverte o estado dos reles
-
-    display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
-    mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
+  //Tarefa realizada a cada 10 milisegundo
+  if ( ( millis() - temp10ms ) >= 10) {     //Testa se passou 10ms
 
     display.set(0, 1);                      //Posiciona cursor do display na coluna 0 / linha 1
     mostraTeclado();                        //Chama funcao de mostrar leitura do teclado no display
 
-    temp200ms = millis();                   //Salva o tempo atual para nova tarefa apos 200ms
+    temp10ms = millis();                    //Salva o tempo atual para nova tarefa apos 10ms
 
-  }//fim da tarefa de 200ms
+  }//fim da tarefa de 10ms
+
+  //Tarefa realizada a cada 500 milisegundo
+  if ( ( millis() - temp500ms ) >= 500) {   //Testa se passou 500ms
+
+    display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
+    mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
+
+    inverteRele(i++);                       //Inverte o estado de um rele e posiciona o interador para alterar o proximo rele
+    if(i==8)                                //Se chegou ao oitavo rele
+      i = 0;                                //Posiciona o interador no primeiro rele
+
+    temp500ms = millis();                   //Salva o tempo atual para nova tarefa apos 500ms
+
+  }//fim da tarefa de 500ms
 
   //Tarefa realizada a cada 1 segundo
   if ( ( millis() - temp1s ) >= 1000) {     //Testa se passou 1 segundo
 
     tbi(PORTB, PB5);                        //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
-
+    
     temp1s = millis();                      //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
@@ -297,24 +306,37 @@ void loop()
                                                 Funcoes auxiliares
 ***************************************************************************************************************************/
 
+//declara um tipo de variavel unsigned int com um novo nome
+typedef unsigned int marcelino_t;
+
 //Funcao que mostra no display a temperatura lida do DS3231
 void mostraTemperatura()
 {
   display.print("Temp: ");            //Mostra string no display
   float temperatura = sensor.temp();  //Realiza a leitura da temperatura do sensor
   display.print(temperatura);         //Mostra temperatura no display
-  display.write((int)0);              //Mostra caracter salvo na posicao 0 da memoria grafica do display (simbolo graus)
+  display.write((unsigned char)0);    //Mostra caracter salvo na posicao 0 da memoria grafica do display (simbolo graus)
   display.print("C  ");               //Mostra caracter no display
-  display.write((int)1);              //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
+  display.write((uint8_t)1);          //Mostra caracter salvo na posicao 1 da memoria grafica do display (rostinho feliz)
 }//fim da funcao mostraTemperatura
 
 //Funcao que mostra no display o valor analogico do teclado lido pelo pino pinTeclado
 void mostraTeclado()
 {
-  display.print("Tecla: ");               //Mostra string no display
-  int teclado = analogRead(pinTeclado);   //Realiza a leitura do teclado
-  display.print((int)teclado);            //Mostra valor lido no teclado
-  display.print("      ");                //Mostra string no display
+
+  //algoritimo de media movel
+  analogTotal -= analog[analogInterator];               //Subtrai do total uma leitura anterior
+  analog[analogInterator] = analogRead(pinTeclado);     //Realiza a leitura do teclado
+  analogTotal += analog[analogInterator++];             //Soma nova leitura ao total e incrementa o interador
+  analogAverage = analogTotal/analogReadMAX;            //Tira a media das leituras
+
+  if(analogInterator == analogReadMAX)                  //Se leituras chegaram ao limite do vetor
+    analogInterator = 0;                                //Retorna interador para o inicio do vetor
+  
+  display.print("Tecla: ");                             //Mostra string no display
+  display.print((int)analogAverage);                    //Mostra valor lido no teclado
+  Serial.println((marcelino_t)analogAverage);           //Mostra valor lido no teclado na interface Serial
+  display.print("      ");                              //Mostra string no display
 }//fim da funcao mostraTeclado
 
 //Funcao que envia o estado dos reles para a placa de controle
@@ -349,8 +371,7 @@ void desligaRele(char rele)
 //Funcao de leitura das teclas
 char leituraTeclado()
 {
-  char valorLido;
+  
   //Implementacao da funcao de leitura do teclado...
-  return valorLido;
-
+  
 }//fim da funcao leituraTeclado
