@@ -2,6 +2,7 @@
 
    Autor: Marcelo Henrique Moraes
    E-mail: marceloh220@hotmail.com
+   Copyright (c) 2017 Marcelo Henrique Moraes
 
    Projeto Casa Sustentavel: Climatizador de AR
    https://github.com/marceloh220/Climatizador.git
