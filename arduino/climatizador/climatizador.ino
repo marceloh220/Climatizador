@@ -3,6 +3,9 @@
    Autor: Marcelo Henrique Moraes
    E-mail: marceloh220@hotmail.com
 
+   Projeto Casa Sustentavel: Climatizador de AR
+   https://github.com/marceloh220/Climatizador.git
+   
    Codigo fonte e bibliotecas disponiveis em:
    https://github.com/marceloh220/Climatizador/tree/master/arduino
 

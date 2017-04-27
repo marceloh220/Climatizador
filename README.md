@@ -39,8 +39,8 @@ Makefile
 
 **************************************************************************************
 
-AVR toolchain e um conjunto de ferramentas para desenvolvimento de aplicacoes
-em microcontroladoores AVR.
+AVR toolchain e um conjunto de ferramentas de desenvolvimento de aplicacoes
+para microcontroladoores AVR.
 
 tool/avr-gcc/*
 
@@ -65,7 +65,7 @@ tool/avrdude/License.txt
 **************************************************************************************
 
 Libusb é uma ferramenta para reconhecimento de driver para ferramentas de upload
-(FTI/arduino/usbasp...)
+(FTDI/arduino/usbasp...)
 
 tool/libusb0.dll
 
