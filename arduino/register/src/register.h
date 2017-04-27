@@ -16,10 +16,6 @@
 
  */
 
-#ifndef pgm_get(sfr,P)
-#define pgm_get(sfr,P)	pgm_read_byte(&sfr[P])
-#endif
-
 class Register {
 private:
 	uint8_t _register;
