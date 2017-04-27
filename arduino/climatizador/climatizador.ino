@@ -223,8 +223,13 @@ const uint8_t rostinho[8] PROGMEM =
 //Variavel de controle dos reles
 unsigned char relay;
 
-//Variavel de controle do tempo
-unsigned long temp10ms, temp500ms, temp1s;
+//Estrutura de dados para controle do tempo, tipo com novo nome definido 
+typedef struct Time {
+  unsigned long ms10, ms500, s1;
+} time_t;
+
+//Variavel de controle do tempo criado com a estrutura definida
+time_t temp;
 
 //Variaveis de leitura analogica com o algoritimo de media movel
 #define analogReadMAX     20        //Numero de leituras analogicas a se realizar
@@ -273,17 +278,17 @@ void loop()
   static char i;                            //Variavel utilizada como interador que preserva o seu valor quando sai da funcao
 
   //Tarefa realizada a cada 10 milisegundo
-  if ( ( millis() - temp10ms ) >= 10) {     //Testa se passou 10ms
+  if ( ( millis() - temp.ms10 ) >= 10) {    //Testa se passou 10ms
 
     display.set(0, 1);                      //Posiciona cursor do display na coluna 0 / linha 1
     mostraTeclado();                        //Chama funcao de mostrar leitura do teclado no display
 
-    temp10ms = millis();                    //Salva o tempo atual para nova tarefa apos 10ms
+    temp.ms10 = millis();                   //Salva o tempo atual para nova tarefa apos 10ms
 
   }//fim da tarefa de 10ms
 
   //Tarefa realizada a cada 500 milisegundo
-  if ( ( millis() - temp500ms ) >= 500) {   //Testa se passou 500ms
+  if ( ( millis() - temp.ms500 ) >= 500) {  //Testa se passou 500ms
 
     display.set(0, 0);                      //Posiciona cursor do display na coluna 0 / linha 0
     mostraTemperatura();                    //Chama funcao de mostrar temperatura no display
@@ -292,16 +297,16 @@ void loop()
     if(i==8)                                //Se chegou ao oitavo rele
       i = 0;                                //Posiciona o interador no primeiro rele
 
-    temp500ms = millis();                   //Salva o tempo atual para nova tarefa apos 500ms
+    temp.ms500 = millis();                  //Salva o tempo atual para nova tarefa apos 500ms
 
   }//fim da tarefa de 500ms
 
   //Tarefa realizada a cada 1 segundo
-  if ( ( millis() - temp1s ) >= 1000) {     //Testa se passou 1 segundo
+  if ( ( millis() - temp.s1 ) >= 1000) {    //Testa se passou 1 segundo
 
     tbi(PORTB, PB5);                        //Pisca led do pino 13, acesso direto ao PORTB alterando somente o pino PB5
     
-    temp1s = millis();                      //Salva o tempo atual para nova tarefa apos 1s
+    temp.s1 = millis();                     //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
 
