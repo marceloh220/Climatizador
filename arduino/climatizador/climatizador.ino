@@ -228,7 +228,7 @@ typedef struct Time {
   unsigned long ms10, ms500, s1;
 } time_t;
 
-//Variavel de controle do tempo criado com a estrutura definida
+//Variavel de controle do tempo criado com a estrutura Time
 time_t temp;
 
 //Variaveis de leitura analogica com o algoritimo de media movel
