@@ -22,6 +22,7 @@ Cristal externo 16MHz
 
 Bibliotecas sem compatibilidade total com Familia Arduino
 Apenas para Arduinos com MCU ATmega168/328/328p:
+Timer1
 TWI
 IHM8575
 DS3231
