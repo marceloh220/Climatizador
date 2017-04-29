@@ -12,12 +12,8 @@
 
 */
 
-Digital digital;                //Module Digital instantiate as digital
-Timer0  pwm;                    //Module Digital instantiate as pwm (it will be used to generate a pwm signal, so)
+#include <timer1.h>
 Timer1  capture;                //Module Timer1 instantiate as capture (Guess what!)
-Serial serial(9600);            //Module Serial instantiate (and will print value of pwm width in serial buss)
-
-Delay delay;                    //A little delay will be necessary
 
 double width;                   //Variable to guard the width pulse in milliseconds
 
@@ -66,37 +62,36 @@ void measure() {
 
 void setup() {
 
-  digital.mode(OC0B, OUTPUT);   //OC0B like output to generate the pwm signal (digital pin 5)
+  pinMode(5, OUTPUT);   //OC0B like output to generate the pwm signal (digital pin 5)
                                 //For more details about this pins names read the Digital module manual
 
-  digital.mode(ICP, INPUT);     //ICP like input to read the sginal of pwm (digital pin 8)
+  pinMode(ICP, INPUT);     //ICP like input to read the sginal of pwm (digital pin 8)
 
-  digital.mode(2, PULLUP);      //Button to increased the width of pwm signal
-  digital.mode(3, PULLUP);      //Button to decreased the width of pwm signal
-
-  pwm.config(FAST);             //Configure the timer 0  to generate a fast pwm
+  pinMode(2, INPUT_PULLUP);      //Button to increased the width of pwm signal
+  pinMode(3, INPUT_PULLUP);      //Button to decreased the width of pwm signal
   
   //Attach the measure function in a capture interrupt of timer 1
   //This part start the capture to detect the rising edge of pulse
   capture.attach(CAPT,RISING,measure);
-
+  capture.attach(OVF,ovf);
+Serial.begin(9600);
 
 }
 
 void loop() {
 
-  if(!digital.read(2)&&aux<255) //if button in pin 2 is pressed (inverted logic) and aux not max
+  if(!digitalRead(2)&&(aux<255)) //if button in pin 2 is pressed (inverted logic) and aux not max
     aux++;                      //Increassed the pwm width
 
-  if(!digital.read(3)&&aux>0)   //if button in pin 3 is pressed (inverted logic) and aux not min
+  if(!digitalRead(3)&&(aux>0) )  //if button in pin 3 is pressed (inverted logic) and aux not min
     aux--;                      //Decreased the pwm width
 
-  pwm.pwmB(aux);                ///generate the pwm pulse
+  analogWrite(5,aux);                ///generate the pwm pulse
   
-  serial.print(width);          //print the pwm pulse width in serial monitor
-  serial.println(" us");        //print unit
+  Serial.print(width);          //print the pwm pulse width in serial monitor
+  Serial.println(" us");        //print unit
 
-  delay.ms(100);                //to debounce the button
+  delay(100);                //to debounce the button
 
   
 
