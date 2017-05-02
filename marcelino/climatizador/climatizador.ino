@@ -97,7 +97,6 @@
 
 #define pinTeclado          A3     //Pino de leitura do teclado analogico
 #define pinLM35             A0     //Pino de leitura do sensor de temperatura LM35
-#define pinSinalizacao      13     //Pino de LED de sinalizacao de baixo nivel de agua do reservatorio
 
 #define pinUltrason          7     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
 #define pinEcho              8     //O pino de echo do sensor ultrasonico nao pode der alterado, pois esta no hardware de captura interno do MCU
@@ -114,10 +113,11 @@
 //No modo 0: Reles com logica inversa, para utilizaco dos drivers como dreno de corrente (current sink)
 //No modo 1: Reles com logica direta, para utilizaco dos drivers como fonte de corrente (current source)
 
-#define velocidade1 0     //Velocidade 1 do motor de ventilacao
-#define velocidade2 1     //Velocidade 2 do motor de ventilacao
-#define velocidade3 2     //Velocidade 3 do motor de ventilacao
-#define bombaDagua  3     //Bomda de agua do reservatorio
+#define velocidade1         0     //Velocidade 1 do motor de ventilacao
+#define velocidade2         1     //Velocidade 2 do motor de ventilacao
+#define velocidade3         2     //Velocidade 3 do motor de ventilacao
+#define bombaDagua          3     //Bomda de agua do reservatorio
+#define pinSinalizacao      7     //Pino de LED de sinalizacao de baixo nivel de agua do reservatorio
 
 
 /*
@@ -188,6 +188,9 @@ void ligaRele(char rele);
 
 //Funcao de desligar os reles
 void desligaRele(char rele);
+
+//Funcao de alterar o estado dos reles
+void trocaRele(char rele);
 
 //Funcao que realiza a acao da tecla pressionada
 void acao();
@@ -300,7 +303,7 @@ Volume volume;
 ***************************************************************************************************************************/
 
 //Classe de leitura de media movel
-#define mediaMax     10                 //Numero de leituras analogicas a se realizar
+#define mediaMax     20                 //Numero de leituras analogicas a se realizar
 struct Media : private Analog {         //Cria classe Media com heranca da classe Analog do core Marcelino
 
     /*
@@ -392,7 +395,8 @@ struct Media : private Analog {         //Cria classe Media com heranca da class
 class Temperatura: private DS3231, private Media {
 
     /*
-       Exemplo de classe geral que utliza uma classe especifica
+       Exemplo de classe geral que utliza uma classe especifica.
+       Esta Classe 
        Herda dos metodos  da classe DS3231 e da classe Media .
     */
 
@@ -793,10 +797,10 @@ void loop()
     if ( volume.mililitros < nivelMIN ) {
 
       if ( ventilacao.velocidade() > 0 )            //Se ventilacao esta ligada
-        digital.write(pinSinalizacao, PISCANDO);    //Sinaliza nivel de agua baixo no reservatorio com um led
+       trocaRele(pinSinalizacao);                   //Sinaliza nivel de agua baixo no reservatorio com um led
 
       else                                          //Se ventilacao desligada
-        digital.write(pinSinalizacao, DESLIGADO);   //Nao incomoda ninguem com sinalizacoes desnecessarias
+        desligaRele(pinSinalizacao);                //Nao incomoda ninguem com sinalizacoes desnecessarias
 
     }//fim do teste de nivel de agua
 
@@ -936,6 +940,16 @@ void desligaRele(char rele)
 
 }//fim da funcao desligarRele
 
+//Funcao de alterar o estado dos reles
+void trocaRele(char rele)
+{
+  tbi(relay, rele);         //Muda o estado do rele passado
+#//Aqui os preprocessadores nao sao necessarios
+
+  enviaRele(relay);         //Envia o estado dos reles para a placa de controle
+
+}//fim da funcao trocaRele
+
 //Funcao que realiza a acao da tecla pressionada
 void acao() {
 
@@ -997,14 +1011,14 @@ void medirVolume() {
     desligaRele(bombaDagua);                      //desliga a bomba d'agua
 
   //Se nao, se ventilacao ligada
-  else if ( ventilacao.velocidade()) {  
-    digital.write(pinSinalizacao, DESLIGADO);     //desliga sinalizacao de nivel de agua baixo
+  else if ( ventilacao.velocidade()) {
+    desligaRele(pinSinalizacao);                  //desliga sinalizacao de nivel de agua baixo
     ligaRele(bombaDagua);                         //liga a bomba d'agua
   }
 
   //Se nao
   else {
-    digital.write(pinSinalizacao, DESLIGADO);     //desliga sinalizacao de nivel de agua baixo
+    desligaRele(pinSinalizacao);                  //desliga sinalizacao de nivel de agua baixo
     desligaRele(bombaDagua);                      //desliga a bomba d'agua
   }
 
