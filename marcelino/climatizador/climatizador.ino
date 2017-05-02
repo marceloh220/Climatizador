@@ -99,7 +99,7 @@
 #define pinLM35             A0     //Pino de leitura do sensor de temperatura LM35
 #define pinSinalizacao      13     //Pino de LED de sinalizacao de baixo nivel de agua do reservatorio
 
-#define pinUltrason          7     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
+#define pinUltrason          9     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
 #define pinEcho              8     //O pino de echo do sensor ultrasonico nao pode der alterado, pois esta no hardware de captura interno do MCU
 
 /*
