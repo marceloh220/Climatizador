@@ -96,7 +96,7 @@
 // === Pinos do Arduino ===
 
 #define pinTeclado          A3     //Pino de leitura do teclado analogico
-#define pinLM35             A0     //Pino de leitura do sensor de temperatura LM35
+#define pinLM35             A2     //Pino de leitura do sensor de temperatura LM35
 
 #define pinUltrason          9     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
 #define pinEcho              8     //O pino de echo do sensor ultrasonico nao pode der alterado, pois esta no hardware de captura interno do MCU
@@ -621,7 +621,8 @@ class Teclado: private Analog {
 IHM8574 display(displayADDRESS);
 
 //Dispositivo RTC instanciado com o nome de relogio
-DS3231 relogio;
+//Meses e dias da semana em pt_br
+DS3231 relogio(pt_br);
 
 //Objeto para leituras de temperatura ambiente com sensores DS3231 e de temperatura refrigerada ligada ao pino do sensor LM35
 //Lembrando que o construtor da classe Temperatura recebe o pino analogico do sensor a ser lido
