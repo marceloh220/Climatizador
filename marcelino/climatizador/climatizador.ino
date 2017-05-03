@@ -97,7 +97,6 @@
 
 #define pinTeclado          A3     //Pino de leitura do teclado analogico
 #define pinLM35             A0     //Pino de leitura do sensor de temperatura LM35
-#define pinSinalizacao      13     //Pino de LED de sinalizacao de baixo nivel de agua do reservatorio
 
 #define pinUltrason          9     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
 #define pinEcho              8     //O pino de echo do sensor ultrasonico nao pode der alterado, pois esta no hardware de captura interno do MCU
@@ -114,10 +113,11 @@
 //No modo 0: Reles com logica inversa, para utilizaco dos drivers como dreno de corrente (current sink)
 //No modo 1: Reles com logica direta, para utilizaco dos drivers como fonte de corrente (current source)
 
-#define velocidade1 0     //Velocidade 1 do motor de ventilacao
-#define velocidade2 1     //Velocidade 2 do motor de ventilacao
-#define velocidade3 2     //Velocidade 3 do motor de ventilacao
-#define bombaDagua  3     //Bomda de agua do reservatorio
+#define velocidade1         0     //Velocidade 1 do motor de ventilacao
+#define velocidade2         1     //Velocidade 2 do motor de ventilacao
+#define velocidade3         2     //Velocidade 3 do motor de ventilacao
+#define bombaDagua          3     //Bomda de agua do reservatorio
+#define pinSinalizacao      7     //Pino de LED de sinalizacao de baixo nivel de agua do reservatorio
 
 
 /*
@@ -180,6 +180,9 @@ void mostraVelocidade();
 //Funcao que mostra no display o nivel de agua
 void mostraNivel();
 
+///Funcao que mostra no display a hora
+void mostraHora();
+
 //Funcao que envia o estado dos reles para a placa de controle
 void enviaRele(char rele);
 
@@ -188,6 +191,9 @@ void ligaRele(char rele);
 
 //Funcao de desligar os reles
 void desligaRele(char rele);
+
+//Funcao de alterar o estado dos reles
+void trocaRele(char rele);
 
 //Funcao que realiza a acao da tecla pressionada
 void acao();
@@ -200,7 +206,7 @@ typedef void (*func)();
 
 //Vetor de funcoes "mostrar..." para apresentar variaveis no display
 //Este vetor guarda os enderecos das funcoes
-func mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel};
+func mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel, mostraHora};
 
 //Ponteiro para as funcoes "mostra..."
 //Basta alterar o valor do ponteiro que sera alterado a funcao que sera chamada
@@ -250,8 +256,8 @@ const uint8_t graus[8] PROGMEM =
 //Variavel de controle dos reles
 uint8_t relay;
 
-//Variaveis para testes gerais
-uint8_t testeGerais;
+//Variavel para configuracao do relogio
+uint8_t configRelogio;
 
 //Estrutura de dados para controle do tempo, tipo com novo nome definido
 typedef struct Time {
@@ -300,7 +306,7 @@ Volume volume;
 ***************************************************************************************************************************/
 
 //Classe de leitura de media movel
-#define mediaMax     10                 //Numero de leituras analogicas a se realizar
+#define mediaMax     20                 //Numero de leituras analogicas a se realizar
 struct Media : private Analog {         //Cria classe Media com heranca da classe Analog do core Marcelino
 
     /*
@@ -392,7 +398,8 @@ struct Media : private Analog {         //Cria classe Media com heranca da class
 class Temperatura: private DS3231, private Media {
 
     /*
-       Exemplo de classe geral que utliza uma classe especifica
+       Exemplo de classe geral que utliza uma classe especifica.
+       Esta Classe
        Herda dos metodos  da classe DS3231 e da classe Media .
     */
 
@@ -613,6 +620,9 @@ class Teclado: private Analog {
 //IHM8574 NomeDoObjeto(endereco do dispositivo TWI);
 IHM8574 display(displayADDRESS);
 
+//Dispositivo RTC instanciado com o nome de relogio
+DS3231 relogio;
+
 //Objeto para leituras de temperatura ambiente com sensores DS3231 e de temperatura refrigerada ligada ao pino do sensor LM35
 //Lembrando que o construtor da classe Temperatura recebe o pino analogico do sensor a ser lido
 Temperatura temperatura(pinLM35);
@@ -793,10 +803,10 @@ void loop()
     if ( volume.mililitros < nivelMIN ) {
 
       if ( ventilacao.velocidade() > 0 )            //Se ventilacao esta ligada
-        digital.write(pinSinalizacao, PISCANDO);    //Sinaliza nivel de agua baixo no reservatorio com um led
+        trocaRele(pinSinalizacao);                   //Sinaliza nivel de agua baixo no reservatorio com um led
 
       else                                          //Se ventilacao desligada
-        digital.write(pinSinalizacao, DESLIGADO);   //Nao incomoda ninguem com sinalizacoes desnecessarias
+        desligaRele(pinSinalizacao);                //Nao incomoda ninguem com sinalizacoes desnecessarias
 
     }//fim do teste de nivel de agua
 
@@ -897,6 +907,66 @@ void mostraNivel() {
 
 }//fim da funcao mostraNivel
 
+//Funcao que mostra no display a hora
+void mostraHora() {
+  uint8_t aux;
+
+  display.set(0, 0);                      //Posiciona cursor na coluna 0 / linha 0
+  display.print("    ");
+  aux = relogio.hour();
+  if (aux < 10)
+    display.print('0');
+  display.print(aux);
+  display.print(':');
+  aux = relogio.minute();
+  if (aux < 10)
+    display.print('0');
+  display.print(aux);
+  display.print(':');
+  aux = relogio.second();
+  if (aux < 10)
+    display.print('0');
+  display.print(aux);
+  display.print("    ");
+  display.set(0, 1);                      //Posiciona cursor na coluna 0 / linha 1
+  display.print(relogio.weekSTR());
+  display.print(' ');
+  aux = relogio.day();
+  if (aux < 10)
+    display.print('0');
+  display.print(aux);
+  display.print(' ');
+  display.print(relogio.monthSTR());
+  display.print(" 20");
+  aux = relogio.year();
+  if (aux < 10)
+    display.print('0');
+  display.print(aux);
+  display.print(' ');
+
+  if (configRelogio && mostraPTR == 4) {
+    display.cursor(onCURSOR);
+    if (configRelogio == 1 )
+      display.set(5, 0);
+    else if (configRelogio == 2 )
+      display.set(8, 0);
+    else if (configRelogio == 3 )
+      display.set(11, 0);
+    else if (configRelogio == 4 )
+      display.set(2, 1);
+    else if (configRelogio == 5 )
+      display.set(5, 1);
+    else if (configRelogio == 6 )
+      display.set(9, 1);
+    else if (configRelogio == 7 )
+      display.set(14, 1);
+
+  }
+  else
+    display.cursor(noCURSOR);
+
+}//fim da funcao mostraHora
+
 //Funcao que envia o estado dos reles para a placa de controle
 void enviaRele(char rele) {
   relay = rele;             //Atualiza estado dos reles com o valor enviado
@@ -936,23 +1006,126 @@ void desligaRele(char rele)
 
 }//fim da funcao desligarRele
 
+//Funcao de alterar o estado dos reles
+void trocaRele(char rele)
+{
+  tbi(relay, rele);         //Muda o estado do rele passado
+#//Aqui os preprocessadores nao sao necessarios
+
+  enviaRele(relay);         //Envia o estado dos reles para a placa de controle
+
+}//fim da funcao trocaRele
+
 //Funcao que realiza a acao da tecla pressionada
 void acao() {
 
   uint8_t tecla = teclado.leitura();  //Verifica a tecla pressionada
 
   if ( tecla == 1) {                  //Se pressionada tecla 1
+    configRelogio = 0;
     if (mostraPTR > 0)                //Se ponteiro mostrar nao estiver na posicao 0
       mostraPTR--;                    //Decrementa ponteiro mostrar
   }
 
   else if ( tecla == 2) {             //Se pressionada tecla 2
-    if (mostraPTR < 3)                //Se ponteiro mostrar nao estiver na posicao 3
+    configRelogio = 0;
+    if (mostraPTR < 4)                //Se ponteiro mostrar nao estiver na posicao 4
       mostraPTR++;                    //Incrementa ponteiro mostrar
   }
 
-  else if ( tecla == 3)               //Se tecla 3 pressionada
+  else if ( tecla == 3) {               //Se tecla 3 pressionada
+    configRelogio = 0;
     ventilacao.trocar();              //Troca a velocidade da ventilacao
+  }
+
+  else if ( tecla == 4) {             //Se tecla 4 pressionada
+    configRelogio++;
+    if (configRelogio > 7)
+      configRelogio = 0;
+  }
+
+  else if ( tecla == 5) {
+
+    if (configRelogio == 1) {
+      tecla = relogio.hour();
+      if (tecla > 0) {
+        tecla--;
+        relogio.hour(tecla);
+      }
+      else if (tecla == 0) {
+        relogio.hour(23);
+      }
+    }
+
+    if (configRelogio == 2) {
+      tecla = relogio.minute();
+      if (tecla > 0) {
+        tecla--;
+        relogio.minute(tecla);
+      }
+      else if (tecla == 0) {
+        relogio.minute(59);
+      }
+    }
+
+    if (configRelogio == 3) {
+      tecla = relogio.second();
+      if (tecla > 0) {
+        tecla--;
+        relogio.second(tecla);
+      }
+      else if (tecla == 0) {
+        relogio.second(59);
+      }
+    }
+
+    if (configRelogio == 4) {
+      tecla = relogio.week();
+      if (tecla > 1) {
+        tecla--;
+        relogio.week(tecla);
+      }
+      else if (tecla == 1) {
+        relogio.week(7);
+      }
+    }
+
+    if (configRelogio == 5) {
+      tecla = relogio.day();
+      if (tecla > 1) {
+        tecla--;
+        relogio.day(tecla);
+      }
+      else if (tecla == 1) {
+        relogio.day(31);
+      }
+    }
+
+    if (configRelogio == 6) {
+      tecla = relogio.month();
+      if (tecla > 1) {
+        tecla--;
+        relogio.month(tecla);
+      }
+      else if (tecla == 1) {
+        relogio.month(12);
+      }
+    }
+
+    if (configRelogio == 7) {
+      tecla = relogio.year();
+      if (tecla > 0) {
+        tecla--;
+        relogio.year(tecla);
+      }
+      else if (tecla == 0) {
+        relogio.year(99);
+      }
+    }
+
+
+  }
+
 
 }//fim da funcao acao
 
@@ -997,14 +1170,14 @@ void medirVolume() {
     desligaRele(bombaDagua);                      //desliga a bomba d'agua
 
   //Se nao, se ventilacao ligada
-  else if ( ventilacao.velocidade()) {  
-    digital.write(pinSinalizacao, DESLIGADO);     //desliga sinalizacao de nivel de agua baixo
+  else if ( ventilacao.velocidade()) {
+    desligaRele(pinSinalizacao);                  //desliga sinalizacao de nivel de agua baixo
     ligaRele(bombaDagua);                         //liga a bomba d'agua
   }
 
   //Se nao
   else {
-    digital.write(pinSinalizacao, DESLIGADO);     //desliga sinalizacao de nivel de agua baixo
+    desligaRele(pinSinalizacao);                  //desliga sinalizacao de nivel de agua baixo
     desligaRele(bombaDagua);                      //desliga a bomba d'agua
   }
 
