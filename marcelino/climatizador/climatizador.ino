@@ -202,11 +202,11 @@ void acao();
 void medirVolume();
 
 //Cria um tipo de variavel para ponteiro de funcoes
-typedef void (*func)();
+typedef void (*funcoes)();
 
 //Vetor de funcoes "mostrar..." para apresentar variaveis no display
 //Este vetor guarda os enderecos das funcoes
-func mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel, mostraHora};
+funcoes mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel, mostraHora};
 
 //Ponteiro para as funcoes "mostra..."
 //Basta alterar o valor do ponteiro que sera alterado a funcao que sera chamada
