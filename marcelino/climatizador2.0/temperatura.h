@@ -8,8 +8,9 @@ class Temperatura: private DS3231, private Media {
 
   public:
 
-    Temperatura(uint8_t pino = A0) {
+    Temperatura(uint8_t pino = A0, uint8_t leituras = 20) {
       Media::pin(pino);
+      Media::read(leituras);
     }
     
     inline void update() {

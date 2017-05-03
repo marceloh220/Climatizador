@@ -63,17 +63,11 @@ Delay   delay;
 ***************************************************************************************************************************/
 
 void mostraTemperatura();
-
 void mostraHumidade();
-
 void mostraVelocidade();
-
 void mostraNivel();
-
 void mostraHora();
-
 void acao();
-
 void medirVolume();
 
 typedef void (*funcoes)();
@@ -86,7 +80,6 @@ uint8_t mostraPTR = 0;
 ***************************************************************************************************************************/
 
 #define get_pgm(m,p)   pgm_read_byte(&m[p])
-
 const uint8_t graus[8] PROGMEM =
 {
   0b00000110,
@@ -131,7 +124,7 @@ IHM8574 display(displayADDRESS);
 
 DS3231 relogio(pt_br);
 
-Temperatura temperatura(pinLM35);
+Temperatura temperatura(pinLM35, 30);
 
 Ventilacao ventilacao;
 
