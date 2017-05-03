@@ -121,13 +121,9 @@ Volume volume;
 ***************************************************************************************************************************/
 
 IHM8574 display(displayADDRESS);
-
 DS3231 relogio(pt_br);
-
 Temperatura temperatura(pinLM35, 30);
-
 Ventilacao ventilacao;
-
 Teclado teclado(pinTeclado);
 
 
@@ -525,7 +521,7 @@ void medirVolume() {
   captura.attach(OVF, medeVolumeOVF);               //anexa a funcao 'medeVolumeOVF' na interrupcao de overflow do temporizacao do hardware de captura
   captura.attach(CAPT, RISING, medeVolume);         //anexa a funcao 'medeVolume' na interrupcao de captura do MCU para detectar uma borda de subida do sinal no pino ICP
   digital.write(pinUltrason, LIGADO);               //liga o pulso de ultrassom do sensor HC-SR04
-  delay.us(15);                                     //aguarda um tempo para que os pulsos ultrassonicos sejam enviados pelo sensor
+  delay.us(20);                                     //aguarda um tempo para que os pulsos ultrassonicos sejam enviados pelo sensor
   digital.write(pinUltrason, DESLIGADO);            //desliga o pulso de ultrassom do sensor
   //calcula as distancias do sensor ultrassonico
   // Distancia = Largura do Pulso * Velocidade do Som / 2

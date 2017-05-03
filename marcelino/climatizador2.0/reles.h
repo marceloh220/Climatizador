@@ -5,7 +5,11 @@
 #include <digital.h>
 
 #ifndef DIRETO
-#define DIRETO	1
+#define DIRETO	 1
+#endif
+
+#ifndef INVERSO
+#define INVERSO  2
 #endif
 
 class Reles: private TWI {
@@ -40,7 +44,7 @@ class Reles: private TWI {
 		void liga(char rele) {
 			if(this->_modo == DIRETO)
 				sbi(this->_rele, rele);
-			else
+			else if(this->_modo == INVERSO)
 				cbi(this->_rele, rele);
 			this->envia(this->_rele);
 		}
@@ -48,7 +52,7 @@ class Reles: private TWI {
 		void desliga(char rele) {
 			if(this->_modo == DIRETO)
 				cbi(this->_rele, rele);
-			else
+			else if(this->_modo == INVERSO)
 				sbi(this->_rele, rele);
 			this->envia(this->_rele);
 		}
