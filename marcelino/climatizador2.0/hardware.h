@@ -42,12 +42,6 @@
 #define displayADDRESS (0b01000000)
 
 
-// === Nomes diferenciados para as coisa ===
-
-#define DESLIGADO LOW
-#define LIGADO    HIGH
-#define PISCANDO  TOGGLE
-
 // === Nome para as constantes do reservatorio ===
 // estao em milimetros e mililitros, alterar escalas em 'medirVolume.h'
 #define nivelMIN                  100
@@ -71,6 +65,8 @@
 #define velocidade3         2         //rele de velocidade 3 do ventilador
 
 #define bombaDagua          3         //rele de bomba de agua
+#define direcaoVertical     4         //palhetas de direcionamento verticais da ventilacao
+
 #define pinSinalizacao      7         //rele de led de sinalizacao
 
 #endif

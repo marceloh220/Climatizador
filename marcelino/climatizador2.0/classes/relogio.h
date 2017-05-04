@@ -50,16 +50,19 @@ class Relogio: private DS3231 {
         _ajuste = 0;
     }
 
-    void posicao(uint8_t pos) {
+    inline void posicao(uint8_t pos) {
       _ajuste = pos;
     }
 
-    uint8_t ajuste() {
+    inline uint8_t ajuste() {
       return _ajuste;
     }
     
     void blink() {
-		_blink^=(1<<_ajuste);
+		if(_ajuste==0)
+			_blink=0;
+		else
+			_blink^=(1<<_ajuste);
 	}
     
     void decrementa() {				//decrementa as datas

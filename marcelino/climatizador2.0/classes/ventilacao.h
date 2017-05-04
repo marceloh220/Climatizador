@@ -70,8 +70,10 @@ class Ventilacao {
 
     void trocar() {
       this->_velocidade++;
-      if (this->_velocidade == 4)
+      if (this->_velocidade == 4) {
         this->_velocidade = 0;
+        rele.desliga(direcaoVertical);
+	  }
       this->velocidade(_velocidade);
     }
 

@@ -58,7 +58,11 @@ void medirVolume();
 
 #define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
 typedef void (*funcoes)();
+
+
+//vetor com funcoes e ponteiro para funcoes
 funcoes mostra[] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
+
 uint8_t mostraPTR = 0;
 
 
@@ -66,6 +70,7 @@ uint8_t mostraPTR = 0;
                                                Constantes do sistema
 ***************************************************************************************************************************/
 
+//Caracter simbolo de graus para display lcd
 #define get_pgm(m,p)   pgm_read_byte(&m[p])
 const uint8_t graus[8] PROGMEM =
 {
@@ -108,7 +113,7 @@ Volume volume;
 Digital digital;          //Controle dos pinos digital
 Timer0  timer;            //Temporizacoes com o timer 0
 Timer1  captura;          //Captura para leitura de largura de pulso do sensor de nivel com hardware do timer 1
-Serial  serial;
+Serial  serial;           //Modulo Serial para comunicacao com computador
 Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor ultrassonico)
 
 
@@ -117,7 +122,7 @@ Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor 
 ***************************************************************************************************************************/
 
 IHM8574 display(displayADDRESS);        //Display 16x2 com ci PCF8574
-Relogio relogio(pt_br);                  //Relogio RTC com dispositivo DS3231
+Relogio relogio(pt_br);                 //Relogio RTC com dispositivo DS3231, semana e mes em pt_br
 Temperatura temperatura(pinLM35, 30);   //Temperaturas com sensor de temperatura do DS3231 e LM35
 Ventilacao ventilacao;                  //Controle da velocidade da ventilacao
 Teclado teclado(pinTeclado);            //Leitura do teclado analogico
@@ -146,7 +151,7 @@ void medeVolume()
     captura.timer(CLEAR);       //Limpa o temporizador de captura
     captura.prescale(64);       //Liga o temporizador de captura com prescale 64
 
-    //configura captura para detectar a borda de descida do sinal
+    //configura captura (CAPT) para detectar a borda de descida do sinal (FALLING)
     captura.attach(CAPT, FALLING, medeVolume);
 
   }//fim da deteccao da borda de subida
@@ -186,7 +191,7 @@ void setup()
     display.create(0, get_pgm(graus, i), i);
 
   //Liga o background do display
-  display.background(LIGADO);
+  display.background(ON);
 
   //Pino do LED como saida
   digital.mode(pinSinalizacao, OUTPUT);
