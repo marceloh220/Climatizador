@@ -7,17 +7,12 @@
    Projeto Casa Sustentavel: Climatizador de AR
    https://github.com/marceloh220/Climatizador.git
 
-   Codigo fonte e bibliotecas disponiveis em:
-   https://github.com/marceloh220/Climatizador/tree/master/arduino
-
-   Esquematicos do projeto em formato PDF (Apenas leitura) e DSN (simulação Proteus 7.7)
-   https://github.com/marceloh220/Climatizador/tree/master/Schematics
-
    Projeto core Marcelino
    https://github.com/marceloh220/Marcelino.git
 
+   MCU: Atmega328p
    Arduino IDE 1.8.2
-   Marcelino Atmega328 (ATmega328/p)
+   Marcelino Atmega328/p (Arduino/Genuino Uno/Nano)
    F_CPU 16MHz (Cristal externo)
 
     This application is a free software, you can redistribute it and/or
@@ -34,7 +29,6 @@
 ***************************************************************************************************************************/
 
 
-
 /**************************************************************************************************************************
                                                       Bibliotecas
 ***************************************************************************************************************************/
@@ -45,10 +39,10 @@
 #include <IHM8574.h>
 
 //Classes separadas em arquivos
-#include "teclado.h"
-#include "ventilacao.h"
-#include "temperatura.h"
-#include "relogio.h"
+#include "classes/teclado.h"
+#include "classes/ventilacao.h"
+#include "classes/temperatura.h"
+#include "classes/relogio.h"
 
 
 /**************************************************************************************************************************
@@ -62,6 +56,7 @@ void mostraHora();
 void acao();
 void medirVolume();
 
+#define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
 typedef void (*funcoes)();
 funcoes mostra[] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
 uint8_t mostraPTR = 0;
@@ -113,7 +108,7 @@ Volume volume;
 Digital digital;          //Controle dos pinos digital
 Timer0  timer;            //Temporizacoes com o timer 0
 Timer1  captura;          //Captura para leitura de largura de pulso do sensor de nivel com hardware do timer 1
-Serial  serial(57600);    //Comunicacao Serial com um comptador
+Serial  serial;
 Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor ultrassonico)
 
 
@@ -230,6 +225,7 @@ void loop()
   if ( ( timer.millis() - temporizacao.ms500 ) >= 500) {  //Testa se passou 500ms
 
     medirVolume();                          //Atualiza a leitura de volume do reservatorio
+    relogio.blink();
 
     temporizacao.ms500 = timer.millis();    //Salva o tempo atual para nova tarefa apos 500ms
 
@@ -260,10 +256,10 @@ void loop()
 ***************************************************************************************************************************/
 
 //Implementacoes separaas em arquivos para faciliar a leitura e solucao de problemas
-#include "mostraTemperatura.h"
-#include "mostraVelocidade.h"
-#include "mostraNivel.h"
-#include "mostraHora.h"
-#include "acao.h"
-#include "medirVolume.h"
+#include "funcoes/mostraTemperatura.h"
+#include "funcoes/mostraVelocidade.h"
+#include "funcoes/mostraNivel.h"
+#include "funcoes/mostraHora.h"
+#include "funcoes/acao.h"
+#include "funcoes/medirVolume.h"
 
