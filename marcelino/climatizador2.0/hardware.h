@@ -45,6 +45,7 @@
 // === Nome para as constantes do reservatorio ===
 // estao em milimetros e mililitros, alterar escalas em 'medirVolume.h'
 #define nivelMIN                  100
+#define nivelMED                  130
 #define alturaReservatorio        60
 #define comprimentoReservatorio   7.668711
 #define larguraReservatorio       1
@@ -66,6 +67,9 @@
 
 #define bombaDagua          3         //rele de bomba de agua
 #define direcaoVertical     4         //palhetas de direcionamento verticais da ventilacao
+
+#define livre1              5         //rele livre
+#define livre2              6         //rele livre
 
 #define pinSinalizacao      7         //rele de led de sinalizacao
 

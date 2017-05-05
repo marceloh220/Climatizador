@@ -31,71 +31,81 @@
 
 ***************************************************************************************************************************/
 
+//Classe TWI pertence ao core Marcelino
 #include <twi.h>
+//Biblioteca digital.h com classe Digital, possui macros para acessos diretos a registradores
 #include <digital.h>
 
+//Uso dos reles com logica direta ( 0 = desligado, 1 = ligado )
 #ifndef DIRETO
 #define DIRETO	 1
 #endif
 
+//Uso dos reles com logica inversa ( 0 = ligado, 1 = desligado )
 #ifndef INVERSO
 #define INVERSO  2
 #endif
 
 class Reles: private TWI {
-	
-	private:
-	
-		uint8_t _rele;
-		uint8_t _endereco;
-		uint8_t _modo;
-	
-	public:
-	
-	
-		Reles(uint8_t endereco, uint8_t modo = DIRETO) {
-			this->_endereco = endereco;
-			this->_modo = modo;
-		}
-		
-		void configura(uint8_t endereco, uint8_t modo) {
-			this->_endereco = endereco;
-			this->_modo = modo;
-		}
-		
-		envia(uint8_t rele) {
-			this->_rele = rele;
-			TWI::start();
-			TWI::send(_endereco);
-			TWI::send(rele);
-			TWI::stop();
-		}
-		
-		void liga(char rele) {
-			if(this->_modo == DIRETO)
-				sbi(this->_rele, rele);
-			else if(this->_modo == INVERSO)
-				cbi(this->_rele, rele);
-			this->envia(this->_rele);
-		}
 
-		void desliga(char rele) {
-			if(this->_modo == DIRETO)
-				cbi(this->_rele, rele);
-			else if(this->_modo == INVERSO)
-				sbi(this->_rele, rele);
-			this->envia(this->_rele);
-		}
+private:
 
-		void troca(char rele) {
-			tbi(this->_rele, rele);
-			this->envia(this->_rele);
-		}
-		
-		uint8_t rele() {
-			return this->_rele;
-		}
-		
+	uint8_t _rele;			//controle dos reles
+	uint8_t _endereco;		//endereco do dispositivo TWI
+	uint8_t _modo;			//modo de operacao
+
+public:
+
+	Reles(uint8_t endereco = 0x00, uint8_t modo = DIRETO) {
+		this->_endereco = endereco;
+		this->_modo = modo;
+	}//construtor com endereco e modo padroes
+	
+	void configura(uint8_t endereco, uint8_t modo) {
+		this->_endereco = endereco;
+		this->_modo = modo;
+	}//metodo de configuracao de endereco e modo
+	
+	void envia(uint8_t rele) {
+		TWI::start();
+		TWI::send(_endereco);
+		TWI::send(rele);
+		TWI::stop();
+	}//metodo de envio de dados para dispositivo TWI
+
+	void parada() {
+		if(this->_modo == DIRETO)
+			this->_rele = 0;
+		else if(this->_modo == INVERSO)
+			this->_rele = 0xFF;
+		this->envia(this->_rele);
+	}//Metodo para desligar todos os reles
+	
+	void liga(char rele) {
+		if(this->_modo == DIRETO)
+			sbi(this->_rele, rele);
+		else if(this->_modo == INVERSO)
+			cbi(this->_rele, rele);
+		this->envia(this->_rele);
+	}//Metodo para ligar rele
+
+	void desliga(char rele) {
+		if(this->_modo == DIRETO)
+			cbi(this->_rele, rele);
+		else if(this->_modo == INVERSO)
+			sbi(this->_rele, rele);
+		this->envia(this->_rele);
+	}//metodo para desligar rele
+
+	void troca(char rele) {
+		tbi(this->_rele, rele);
+		this->envia(this->_rele);
+	}//metodo para trocar o estad de rele
+	
+	uint8_t rele() {
+		return this->_rele;
+	}//metodo de retorno do estado dos reles
+	
 };
 
 

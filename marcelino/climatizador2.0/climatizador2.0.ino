@@ -40,7 +40,7 @@
 
 //Classes separadas em arquivos
 #include "classes/teclado.h"
-#include "classes/ventilacao.h"
+#include "classes/controle.h"
 #include "classes/temperatura.h"
 #include "classes/relogio.h"
 
@@ -62,12 +62,11 @@ typedef void (*funcoes)();
 
 //vetor com funcoes e ponteiro para funcoes
 funcoes mostra[] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
-
 uint8_t mostraPTR = 0;
 
 
 /**************************************************************************************************************************
-                                               Constantes do sistema
+                                            Constantes na memoria de programa
 ***************************************************************************************************************************/
 
 //Caracter simbolo de graus para display lcd
@@ -121,14 +120,11 @@ Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor 
                                               Instancias de Objetos
 ***************************************************************************************************************************/
 
-IHM8574 display(displayADDRESS);        //Display 16x2 com ci PCF8574
-Relogio relogio(pt_br);                 //Relogio RTC com dispositivo DS3231, semana e mes em pt_br
-Temperatura temperatura(pinLM35, 30);   //Temperaturas com sensor de temperatura do DS3231 e LM35
-Ventilacao ventilacao;                  //Controle da velocidade da ventilacao
-Teclado teclado(pinTeclado);            //Leitura do teclado analogico
-
-//Objeto instanciado no arquivo da classe ventilacao
-//extern Reles rele(relayADDRESS, DIRETO);  //Controle dos reles com PCF8574 com logica direta
+IHM8574 display(displayADDRESS);              //Display 16x2 com ci PCF8574
+Relogio relogio(pt_br);                       //Relogio RTC com dispositivo DS3231, semana e mes em pt_br
+Temperatura temperatura(pinLM35, 30);         //Temperaturas com sensor de temperatura do DS3231 e LM35
+Controle controle(relayADDRESS, DIRETO);      //Controle dos atuadores
+Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
 
 
 /**************************************************************************************************************************
@@ -145,7 +141,7 @@ void medeVolumeOVF()
 //interrupcao de deteccao de sinal no pino de captura
 void medeVolume()
 {
-  
+
   if ( captura.rising() ) {     //Se detectado a borda de subida
 
     captura.timer(CLEAR);       //Limpa o temporizador de captura
@@ -193,12 +189,10 @@ void setup()
   //Liga o background do display
   display.background(ON);
 
-  //Pino do LED como saida
-  digital.mode(pinSinalizacao, OUTPUT);
+  controle.configura(velocidade1,velocidade2,velocidade3,bombaDagua,direcaoVertical,livre1,livre2,pinSinalizacao);
 
   //Inicia com todos os reles desligado
-  for (int i = 0; i < 8; i++)
-    rele.desliga(i);
+  controle.parada();
 
 }//fim da funcao setup
 
@@ -209,7 +203,7 @@ void loop()
   //Tarefa realizada a cada 10 milisegundo
   if ( ( timer.millis() - temporizacao.ms10 ) >= 10) {    //Testa se passou 10ms
 
-    temperatura.update();                   //Atualiza as leituras de temperatura
+    temperatura.atualiza();                 //Atualiza as leituras de temperatura
     acao();                                 //Chama funcao de acoes de controle
     mostra[mostraPTR]();                    //Chama funcao alocada na posicao do ponteiro mostrafuncao
 
@@ -230,7 +224,7 @@ void loop()
   if ( ( timer.millis() - temporizacao.ms500 ) >= 500) {  //Testa se passou 500ms
 
     medirVolume();                          //Atualiza a leitura de volume do reservatorio
-    relogio.blink();
+    relogio.sinalizar();                    //Sinaliza ajuste do relogio com blink da configuracao selecionada
 
     temporizacao.ms500 = timer.millis();    //Salva o tempo atual para nova tarefa apos 500ms
 
@@ -238,19 +232,10 @@ void loop()
 
   //Tarefa realizada a cada 1 segundo
   if ( ( timer.millis() - temporizacao.s1 ) >= 1000) {    //Testa se passou 1 segundo
+    
+    controle.sinalizar();                   //Sinaliza nivel de agua, reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
 
-    //Testa se o nivel de agua esta baixo
-    if ( volume.mililitros < nivelMIN ) {
-
-      if ( ventilacao.velocidade() > 0 )            //Se ventilacao esta ligada
-        rele.troca(pinSinalizacao);                 //Sinaliza nivel de agua baixo no reservatorio com um led
-
-      else                                          //Se ventilacao desligada
-        rele.desliga(pinSinalizacao);               //Nao incomoda ninguem com sinalizacoes desnecessarias
-
-    }//fim do teste de nivel de agua
-
-    temporizacao.s1 = timer.millis();               //Salva o tempo atual para nova tarefa apos 1s
+    temporizacao.s1 = timer.millis();       //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
 

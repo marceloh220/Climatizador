@@ -34,45 +34,46 @@
 //Funcao que realiza a acao da tecla pressionada
 void acao() {
 
-  uint8_t tecla = teclado.leitura();  //Verifica a tecla pressionada
-  uint8_t elem = tamVet(mostra)-1;    //verifica a quantidade de elementos no vetor mostra
-
-  if ( tecla == 1 ) {                 //Se pressionada tecla 1
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    if (mostraPTR > 0)                //Se ponteiro mostrar nao estiver no primeiro elemento
-      mostraPTR--;                    //Decrementa ponteiro mostrar
-  }
-
-  else if ( tecla == 2 ) {            //Se pressionada tecla 2
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    if (mostraPTR < elem) 		  	  //Se ponteiro mostrar nao estiver no ultimo elemento
-      mostraPTR++;                    //Incrementa ponteiro mostrar
-  }
-
-  else if ( tecla == 3 ) {            //Se tecla 3 pressionada
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    ventilacao.trocar();              //Troca a velocidade da ventilacao
-  }
-
-  else if ( tecla == 4 ) {            //Se tecla 4 pressionada
-    if( ventilacao.velocidade() > 0)  //Se ventilacao estiver ligada
-		rele.troca(direcaoVertical);  //Liga ou desliga as palhetas verticais de direcionamento de ventilacao
-	else 							  //Se nao
-		rele.desliga(direcaoVertical);//Desliga as palhetas verticais de direcionamento de ventilacao
-  }
-  
-  else if ( tecla == 5 )              //Se tecla 5 pressionada
-	if( mostraPTR == elem)			  //Se menu estiver na ultima posicao
-		relogio.posicao();            //Avanca o posicionamento do cursor para ajuste de data e hora
-
-  else if ( tecla == 6 )              //Se tecla 6 pressionada
-	if( relogio.ajuste() )			  //Se relogio estiver em posicao de ajuste
-		relogio.decrementa();         //Decrementa a hora e data na posicao
-
-  else if ( tecla == 7)               //Se tecla 7 pressionada
-  	if( relogio.ajuste() )			  //Se relogio estiver em posicao de ajuste
-		relogio.incrementa();         //incrementa a hora e data na posicao
-
+	uint8_t tecla = teclado.leitura();	//Verifica a tecla pressionada
+	uint8_t elem = tamVet(mostra)-1;	//verifica a quantidade de elementos no vetor mostra
+	
+	if ( tecla == 1 ) {                 //Se pressionada tecla 1
+		relogio.posicao(0);             //Reinicia o posicionamento de ajuste de hora
+		if (mostraPTR > 0)              //Se ponteiro mostrar nao estiver no primeiro elemento
+			mostraPTR--;                //Decrementa ponteiro mostrar
+	}//fim teste tecla 1
+	
+	else if ( tecla == 2 ) {            //Se pressionada tecla 2
+		relogio.posicao(0);             //Reinicia o posicionamento de ajuste de hora
+		if (mostraPTR < elem) 		  	//Se ponteiro mostrar nao estiver no ultimo elemento
+			mostraPTR++;                //Incrementa ponteiro mostrar
+	}//fim teste tecla 2
+	
+	else if ( tecla == 3 ) {            //Se tecla 3 pressionada
+		relogio.posicao(0);             //Reinicia o posicionamento de ajuste de hora
+		controle.trocar(VELOCIDADE);    //Troca a velocidade da controle (desligado/1/2/3)
+	}//fim teste tecla 3
+	
+	else if ( tecla == 4 ) {            //Se tecla 4 pressionada
+		relogio.posicao(0);             //Reinicia o posicionamento de ajuste de hora
+		controle.trocar(VERTICAL);	  	//Liga ou desliga a movimentacao das paletas verticais de direcionamento de ar 
+	}//fim teste tecla 4
+	
+	else if ( tecla == 5 ) {             //Se tecla 5 pressionada
+		if( mostraPTR == elem)			//Se menu estiver na ultima posicao
+			relogio.ajuste();           //Avanca o posicionamento do cursor para ajuste de hora/data
+	}//fim teste tecla 5
+	
+	else if ( tecla == 6 ) {            //Se tecla 6 pressionada
+		if( relogio.posicao() )			//Se relogio estiver em posicao de ajuste
+			relogio.decrementa();       //Decrementa a hora/data na posicao
+	}//fim teste tecla 6
+	
+	else if ( tecla == 7) {             //Se tecla 7 pressionada
+		if( relogio.posicao() )			//Se relogio estiver em posicao de ajuste
+			relogio.incrementa();       //incrementa a hora/data na posicao
+	}//fim teste tecla 7
+	
 }//fim da funcao acao
 
 #endif
