@@ -56,7 +56,9 @@ void mostraHora();
 void acao();
 void medirVolume();
 
+//Mede tamanho de vetores
 #define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
+//Tipo para vetor de funcoes
 typedef void (*funcoes)();
 
 
@@ -69,8 +71,10 @@ uint8_t mostraPTR = 0;
                                             Constantes na memoria de programa
 ***************************************************************************************************************************/
 
-//Caracter simbolo de graus para display lcd
+//Le vetor na memoria de programa
 #define get_pgm(m,p)   pgm_read_byte(&m[p])
+
+//Caracter simbolo de graus para display lcd
 const uint8_t graus[8] PROGMEM =
 {
   0b00000110,
@@ -245,7 +249,7 @@ void loop()
                                                 Funcoes auxiliares
 ***************************************************************************************************************************/
 
-//Implementacoes separaas em arquivos para faciliar a leitura e solucao de problemas
+//Implementacoes separadas em arquivos para faciliar a leitura e solucao de problemas
 #include "funcoes/mostraTemperatura.h"
 #include "funcoes/mostraVelocidade.h"
 #include "funcoes/mostraNivel.h"
