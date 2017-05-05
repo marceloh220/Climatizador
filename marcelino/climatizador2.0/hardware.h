@@ -58,7 +58,7 @@
 #define pinLM35             A2        //pino de leitura do sensor de temperatura LM35
 
 #define pinUltrason          9        //pino trigger do sensor de nivel ultrassonico
-#define pinEcho              8        //pino de echo do sensor de nivel ultrassonico
+#define pinEcho            ICP        //pino de echo do sensor de nivel ultrassonico
 
 // === Pinos do Relay ===
 

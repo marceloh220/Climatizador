@@ -36,10 +36,15 @@ void medirVolume()
 {
 
 	digital.mode(pinUltrason, OUTPUT);			//pino de trigger do sensor de ultrasson configurado como saida
-	captura.attach(OVF, medeVolumeOVF);			//anexa a funcao 'medeVolumeOVF' na interrupcao de overflow do temporizacao do hardware de captura
-	captura.attach(CAPT, RISING, medeVolume);	//anexa a funcao 'medeVolume' na interrupcao de captura do MCU para detectar uma borda de subida do sinal no pino ICP
+
+	captura.attach(OVF, medeVolumeOVF);
+	//anexa a funcao 'medeVolumeOVF' na interrupcao de overflow (OVF) da temporizacao do hardware de captura
+
+	captura.attach(CAPT, RISING, medeVolume);
+	//anexa a funcao 'medeVolume' na interrupcao de captura (CAPT) do MCU para detectar uma borda de subida (RISING) do sinal no pino ICP
+
 	digital.write(pinUltrason, ON);				//liga o pulso de ultrassom do sensor HC-SR04
-	delay.us(20);								//aguarda um tempo para que os pulsos ultrassonicos sejam enviados pelo sensor
+	delay.us(20);								//aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
 	digital.write(pinUltrason, OFF);			//desliga o pulso de ultrassom do sensor
 	
 	//Calcula as distancias do sensor ultrassonico
