@@ -237,7 +237,7 @@ void loop()
   //Tarefa realizada a cada 1 segundo
   if ( ( timer.millis() - temporizacao.s1 ) >= 1000) {    //Testa se passou 1 segundo
     
-    controle.sinalizar();                   //Sinaliza nivel de agua, reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
+    controle.sinalizar();                   //Sinaliza nivel de agua, se reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
 
     temporizacao.s1 = timer.millis();       //Salva o tempo atual para nova tarefa apos 1s
 
