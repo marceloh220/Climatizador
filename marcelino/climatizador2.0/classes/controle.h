@@ -170,9 +170,9 @@ public:
 		
 		if(estado == NBAIXO) {					//Se passado reservatorio com nivel baixo
 			if(this->_velocidade>0)				//Se ventilacao ligada
-				_sinalizacao = 1;				//Aciona sinalizacao
+				this->_sinalizacao = 1;			//Aciona sinalizacao
 			else 								//Se nao			
-				_sinalizacao = 0;				//Desliga sinalizacao
+				this->_sinalizacao = 0;			//Desliga sinalizacao
 			Reles::desliga(pinos[3]);			//Desliga a bomba de agua
 			
 		}//fim do teste de nivel baixo
@@ -182,7 +182,7 @@ public:
 				Reles::liga(pinos[3]);			//Liga a bomba de agua
 			else 								//Se nao
 				Reles::desliga(pinos[3]);		//Desliga a bomba de agua
-			_sinalizacao = 0;					//Desliga sinalizacao
+			this->_sinalizacao = 0;				//Desliga sinalizacao
 		}//fim do teste de nivel alto
 		
 	}//fim do metodo reservatorio

@@ -34,7 +34,6 @@
 // === Endereco TWI do CI PCF8574A (0100 A2 A1 A0 R/~W) ===
 
 #define relayADDRESS (0b01000010)
-
 #define displayADDRESS (0b01000000)
 
 

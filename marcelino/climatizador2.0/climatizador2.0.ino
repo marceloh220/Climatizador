@@ -41,6 +41,7 @@
 //Core Marcelino, compatibilidade com placas Arduino/Genuino UNO/Nano, Atmega328/p, Atmega168
 #include <marcelino.h>
 
+//Display lcd 16x2 com CI PCF8574 (TWI)
 #include <IHM8574.h>
 
 //Classes separadas em arquivos
