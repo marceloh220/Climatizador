@@ -29,13 +29,17 @@
 ***************************************************************************************************************************/
 
 /**************************************************************************************************************************
+                                                  Definicoes de Hardware
+***************************************************************************************************************************/
+
+#include "hardware.h"
+
+/**************************************************************************************************************************
                                                       Bibliotecas
 ***************************************************************************************************************************/
 
+//Core Marcelino, compatibilidade com placas Arduino/Genuino UNO/Nano, Atmega328/p, Atmega168
 #include <marcelino.h>
-
-//Arquivo com definicoes de hardware do sistema
-#include "hardware.h"
 
 #include <IHM8574.h>
 
@@ -60,11 +64,14 @@ void medirVolume();
 
 //Mede tamanho de vetores
 #define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
+
 //Tipo para vetor de funcoes
 typedef void (*funcoes)();
 
-//vetor com funcoes e ponteiro para funcoes
+//vetor com funcoes
 funcoes mostra[] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
+
+//ponteiro para funcoes
 uint8_t mostraPTR = 0;
 
 /**************************************************************************************************************************
@@ -104,7 +111,7 @@ class Volume {
     float litros, centilitros, mililitros;
     uint32_t captura;
 };
-Volume volume;
+Volume reservatorio;
 
 /**************************************************************************************************************************
                                       Inicializacao dos modulos do core Marcelino
@@ -175,10 +182,10 @@ void loop() {
 ***************************************************************************************************************************/
 
 //Implementacoes separadas em arquivos para faciliar a leitura e solucao de problemas
-#include "funcoes/mostraTemperatura.h"
-#include "funcoes/mostraVelocidade.h"
-#include "funcoes/mostraNivel.h"
-#include "funcoes/mostraHora.h"
-#include "funcoes/acao.h"
-#include "funcoes/medirVolume.h"
+#include "mostraTemperatura.h"
+#include "mostraVelocidade.h"
+#include "mostraNivel.h"
+#include "mostraHora.h"
+#include "acao.h"
+#include "medirVolume.h"
 
