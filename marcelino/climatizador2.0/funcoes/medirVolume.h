@@ -62,7 +62,7 @@ void medirVolume() {
 	delay.us(20);								//aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
 	digital.write(pinUltrason,OFF);				//desliga o pulso de ultrassom do sensor
 	
-	while(captura.attached(CAPT));				//Espera o fim da captura
+	while(captura.attach());					//Espera o fim da captura
 	
 	//calcula captura
 	volume.captura = captura.capt();			//Salva o tempo de captura
