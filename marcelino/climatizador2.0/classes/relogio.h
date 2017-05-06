@@ -207,8 +207,12 @@ public:
 			return string;						//Retorna hora na string convertida
 		}//fim do teste de blink
 		
-		else 									//Se hora em blink
-			return "  ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 			
 	}//fim do metodo hora
 	
@@ -222,8 +226,12 @@ public:
 			return string;						//Retorna minuto na string convertida
 		}//fim do teste de blink
 		
-		else 									//Se minuto em blink
-			return "  ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 		
 	}//fim do metodo minuto
 	
@@ -237,8 +245,12 @@ public:
 			return string;						//Retorna segundo na string convertida
 		}//fim do teste de blink
 		
-		else 									//Se segundo em blink
-			return "  ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 		
 	}//fim do metodo segundo
 	
@@ -247,8 +259,13 @@ public:
 		if(! (_blink&(1<<4) ) )					//Testa se deve fazer blink semana
 			return DS3231::weekSTR();			//Retorna semana do dispositivo RTC DS3231
 
-		else 									//Se semana em blink
-			return "   ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = ' ';
+			this->string[3] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 		
 	}//fim do metodo semana
 	
@@ -262,8 +279,12 @@ public:
 			return string;						//Retorna dia na string convertida
 		}//fim do teste de blink
 		
-		else 									//Se dia em blink
-			return "  ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 			
 	}//fim do metodo dia
 	
@@ -272,8 +293,13 @@ public:
 		if(! (_blink&(1<<6) ) )					//Testa se deve fazer blink mes
 			return DS3231::monthSTR();			//Retorna mes do dispositivo RTC DS3231
 
-		else 									//Se mes em blink
-			return "   ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = ' ';
+			this->string[3] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 		
 	}//fim do metodo mes
 	
@@ -289,8 +315,14 @@ public:
 			return string;						//Retorna ano na string convertida
 		}//fim do teste de blink
 
-		else 									//Se ano em blink
-			return "    ";						//Retorna string com espacos vazios
+		else {									//Se minuto em blink
+			this->string[0] = ' ';
+			this->string[1] = ' ';
+			this->string[2] = ' ';
+			this->string[3] = ' ';
+			this->string[4] = '\0';
+			return string;						//Retorna string com espacos vazios
+		}
 
 	}//fim do metodo ano
 

@@ -33,7 +33,6 @@
 
 //Funcao que mostra no display a hora
 void mostraHora() {
-  uint8_t aux;
   display.set(0, 0);                      //Posiciona cursor na coluna 0 / linha 0
   display.print("    ");
   display.print(relogio.hora());

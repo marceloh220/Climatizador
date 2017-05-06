@@ -46,7 +46,7 @@ class Teclado: private Analog {
 
     char leitura() {
       if (this->tranca)
-        return NULL;
+        return 0;
       uint16_t _leitura = Analog::read(pino);
 
       if ( _leitura < 900)
@@ -69,6 +69,7 @@ class Teclado: private Analog {
         return 8;
       else if ( _leitura < 860)
         return 9;
+      return 0;
     }
     
     inline void liberar() {
