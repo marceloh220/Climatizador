@@ -58,9 +58,13 @@ void mostraTemperatura();
 void mostraVelocidade();
 void mostraNivel();
 void mostraHora();
+
 void acao();
+
+void capturaOVF();
 void capturaDescida();
 void capturaSubida();
+
 void medirVolume();
 
 //Mede tamanho de vetores
@@ -111,6 +115,7 @@ class Volume {
     float milimetros, centimetros, metros;
     float litros, centilitros, mililitros;
     uint32_t captura;
+    uint8_t ovf;
 };
 Volume reservatorio;
 

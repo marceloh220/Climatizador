@@ -35,12 +35,12 @@
 void mostraTemperatura()
 {
 	display.set(0, 0);                      	//Posiciona cursor na coluna 0 / linha 0
-	display.print("TempExt: ");
+	display.print("T.Ambien:");
 	display.print(temperatura.ambiente());
 	display.write((uint8_t)0);              	//Mostra caracter simbolo graus
 	display.print("C  ");
 	display.set(0, 1);                      	//Posiciona cursor na coluna 0 / linha 1
-	display.print("TempInt: ");
+	display.print("T.Refrig:");
 	display.print(temperatura.refrigerada());
 	display.write((uint8_t)0);              	//Mostra caracter simbolo graus
 	display.print("C  ");

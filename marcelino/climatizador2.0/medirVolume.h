@@ -31,16 +31,31 @@
 
 ***************************************************************************************************************************/
 
-//interrupcao de deteccao de borda de subida do sinal no pino de captura
+//interrupcao de overflow do temporizador da captura
+void capturaOVF() {
+  
+  reservatorio.ovf++;                             //Registra estouro do temporizador de captura
+  
+}//fim do overflow do temporizador de captura
+
+//interrupcao de deteccao da borda de subida do sinal no pino de captura
 void capturaSubida() {
-  captura.prescale(8);                            //Liga o temporizador de captura com prescale 8
-  captura.attach(CAPT, FALLING, capturaDescida);  //configura captura (CAPT) para detectar a borda de descida do sinal (FALLING)
+  
+  captura.prescale(1);                            //Liga o temporizador de captura com prescale 1
+  captura.attach(CAPT, FALLING, capturaDescida);  //Configura captura (CAPT) para detectar a borda de descida do sinal (FALLING)
+  captura.attach(OVF, capturaOVF);                //Ativa overflow (OVF) para detectar o estouro do temporizador de captura
+  
 }//fim da deteccao da borda de subida
 
-//interrupcao de deteccao de borda de descida do sinal no pino de captura
+//interrupcao de deteccao da borda de descida do sinal no pino de captura
 void capturaDescida() {
-  captura.prescale(OFF);                          //Desliga o temporizador da captura
-  captura.detach(CAPT);                           //Para a interrupcao de captura (CAPT)
+  
+  captura.prescale(OFF);                              //Desliga o temporizador da captura
+  captura.detach(CAPT);                               //Para a interrupcao de captura (CAPT)
+  captura.detach(OVF);                                //Para a interrupcao de overflow (OVF) do temporizaodo de captura
+  reservatorio.captura = captura.capt();              //Salva o tempo de captura
+  reservatorio.captura += (reservatorio.ovf * 65535); //Soma a captura com os overflows, se houver
+  
 }//fim da deteccao da borda de descida
 
 //Funcao que inicia a medicao do volume de agua do reservatorio
@@ -51,6 +66,7 @@ void medirVolume() {
 
   //prepara o temporizador de captura
   captura.timer(CLEAR);                           //Limpa o temporizador de captura
+  reservatorio.ovf = 0;                           //Limpa registro de estouros do temporizador de captura
 
   //prepara captura
   captura.attach(CAPT, RISING, capturaSubida);
@@ -62,27 +78,27 @@ void medirVolume() {
   delay.us(20);								                    //aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
   digital.write(pinUltrason, OFF);				        //desliga o pulso de ultrassom do sensor
 
-  while (captura.attach());					              //Espera o fim da captura
-
-  //calcula captura
-  reservatorio.captura = captura.capt();			    //Salva o tempo de captura
+  while (captura.attach());					              //Espera o fim da captura  
 
   /*
      Calculo das distancias do sensor ultrassonico
      
      Distancia = Largura do Pulso * Velocidade do Som / 2
+     
      Largura do Pulso = 1/F_CPU * prescale * captura
+     
      Distancia = 1/F_CPU * prescale * captura * Velocidade do Som / 2
-     Distancia = captura * 1/16e6[s] * 8 * 340.29[m/s] / 2
-     Distancia = captura * 8.50725e-05 [m]
+     Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
+     Distancia = captura * 1.06340625e-5 [m]
+  
   */
-  reservatorio.metros = reservatorio.captura * 8.50725e-5;
+  reservatorio.metros = reservatorio.captura * 1.06340625e-5;
 
   //cm = m * 10e2
-  reservatorio.centimetros = reservatorio.captura * 8.50725e-3;
+  reservatorio.centimetros = reservatorio.metros * 1e2;
 
   //mm = m * 10e3
-  reservatorio.milimetros = reservatorio.captura * 8.50725e-2;
+  reservatorio.milimetros = reservatorio.metros * 1e3;
 
   //subtrai a altura do reservatorio da distancia medida pelo sensor
   float alturaAgua = alturaReservatorio - reservatorio.milimetros;
@@ -99,7 +115,7 @@ void medirVolume() {
   if ( reservatorio.mililitros < nivelMIN )		    //Se o nivel de agua esta abaixo do predeterminado
     controle.reservatorio(NBAIXO);			          //Indica nivel baixo do reservatorio
 
-  else if ( reservatorio.mililitros > nivelMED )		//Se o nivel de agua esta acima do predeterminado
+  else if ( reservatorio.mililitros > nivelMED )	//Se o nivel de agua esta acima do predeterminado
     controle.reservatorio(NALTO);			            //Indica nivel alto do reservatorio
 
 }//fim da funcao medirVolume
