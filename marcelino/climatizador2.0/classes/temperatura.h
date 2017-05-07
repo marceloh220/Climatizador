@@ -40,7 +40,7 @@ class Temperatura: private DS3231, private MoveAverage, private Delay {
 public:
 	
 	Temperatura(uint8_t pino = A0, uint8_t leituras = 20) {
-		MoveAverage::config(pino, leituras);
+		MoveAverage::config(pino, leituras, INTERNAL);
 	}
 	
 	void atualiza() {

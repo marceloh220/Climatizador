@@ -130,8 +130,8 @@ Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor 
 
 IHM8574 display(displayADDRESS);              //Display 16x2 com ci PCF8574
 Relogio relogio(pt_br);                       //Relogio RTC com dispositivo DS3231, semana e mes em pt_br
-Temperatura temperatura(pinLM35, 30);         //Temperaturas com sensor de temperatura do DS3231 e LM35
-Controle controle(relayADDRESS, DIRETO);      //Controle dos atuadores
+Temperatura temperatura(pinLM35,30);          //Temperaturas com sensor de temperatura do DS3231 e LM35, media de 30 leituras analogicas
+Controle controle(relayADDRESS, INVERSO);     //Controle dos atuadores com logica inversa (dreno de corrente)
 Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
 
 /**************************************************************************************************************************

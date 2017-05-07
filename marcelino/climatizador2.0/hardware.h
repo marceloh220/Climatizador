@@ -50,7 +50,7 @@
 // === Pinos do Arduino ===
 
 #define pinTeclado          A3        //pino de leitura do teclado analogico
-#define pinLM35             A2        //pino de leitura do sensor de temperatura LM35
+#define pinLM35             A1        //pino de leitura do sensor de temperatura LM35
 
 #define pinUltrason          9        //pino trigger do sensor de nivel ultrassonico
 #define pinEcho            ICP        //pino de echo do sensor de nivel ultrassonico

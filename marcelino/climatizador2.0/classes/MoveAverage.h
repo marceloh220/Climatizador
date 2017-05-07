@@ -42,7 +42,7 @@
 struct MoveAverage : private Analog, private Serial {
 
 private:
-	
+	uint8_t reference;
 	uint16_t _analog[MoveAverageMAX_READS];
 	uint16_t _total;
 	uint16_t _interator;
@@ -52,7 +52,7 @@ private:
 	
 public:
 	
-	MoveAverage(uint8_t pin = A0, uint8_t reads = 20) {
+	MoveAverage(uint8_t pin = A0, uint8_t reads = 20, uint8_t ref = DEFAULT) {
 		if (reads > MoveAverageMAX_READS)
 			this->_reads = MoveAverageMAX_READS;
 		else
@@ -60,16 +60,18 @@ public:
 		for (uint16_t i = 0; i < this->_reads; i++)
 			this->_analog[i] = 0;
 		this->_pin = pin;
+		this->reference = ref;
 	}
 	
-	void config(uint8_t pin, uint8_t reads) {
+	void config(uint8_t pin, uint8_t reads, uint8_t ref) {
 		this->_pin = pin;
 		this->_reads = reads;
+		this->reference = ref;
 	}
 	
 	void update() {
 		this->_total -= this->_analog[this->_interator];
-		this->_analog[this->_interator] = Analog::read(this->_pin, INTERNAL);
+		this->_analog[this->_interator] = Analog::read(this->_pin, this->reference);
 		this->_total += this->_analog[this->_interator++];
 		this->_average = this->_total / this->_reads;
 		if (this->_interator == this->_reads)

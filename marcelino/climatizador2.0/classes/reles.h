@@ -33,8 +33,6 @@
 
 //Classe TWI pertence ao core Marcelino
 #include <twi.h>
-//Biblioteca digital.h com classe Digital, possui macros para acessos diretos a registradores
-#include <digital.h>
 
 //Uso dos reles com logica direta ( 0 = desligado, 1 = ligado )
 #ifndef DIRETO
