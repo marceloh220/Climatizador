@@ -49,6 +49,7 @@
 #include "classes/controle.h"
 #include "classes/temperatura.h"
 #include "classes/relogio.h"
+#include "classes/motordepasso.h"
 
 /**************************************************************************************************************************
                                                Prototipo de funcoes auxiliares
@@ -105,7 +106,8 @@ const uint8_t graus[8] PROGMEM =
 
 //Para temporizacoes
 typedef struct Time {
-  uint32_t ms10, ms60, ms500, s1;
+  uint32_t ms2, ms10, ms60, ms500, s1;
+  uint32_t captura;
 } time_t;
 time_t temporizacao;
 
@@ -135,9 +137,10 @@ Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor 
 
 IHM8574 display(displayADDRESS);              //Display 16x2 com ci PCF8574
 Relogio relogio(pt_br);                       //Relogio RTC com dispositivo DS3231, semana e mes em pt_br
-Temperatura temperatura(pinLM35,30);          //Temperaturas com sensor de temperatura do DS3231 e LM35, media de 30 leituras analogicas
+Temperatura temperatura(pinLM35, 30);         //Temperaturas com sensor de temperatura do DS3231 e LM35, media de 30 leituras analogicas
 Controle controle(relayADDRESS, INVERSO);     //Controle dos atuadores com logica inversa (dreno de corrente)
 Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
+Passo ventilacao;                             //Controle da movimentacao de ventilacao horizontal
 
 /**************************************************************************************************************************
                                                    Funcoes principais
@@ -145,42 +148,75 @@ Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
 
 //Funcao de configuracao do MCU
 void setup() {
-    //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
-    //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
-    for (int i = 0; i < 8; i++)
+  //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
+  //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
+  for (int i = 0; i < 8; i++)
     display.create(0, get_pgm(graus, i), i);
-    //Liga o background do display
-    display.background(ON);
-    controle.configura(velocidade1, velocidade2, velocidade3, bombaDagua, direcaoVertical, livre1, livre2, pinSinalizacao);    
-    //Inicia com todos os reles desligado
-    controle.parada();
+  //Liga o background do display
+  display.background(ON);
+  controle.configura(velocidade1, velocidade2, velocidade3, bombaDagua, direcaoVertical, livre1, livre2, pinSinalizacao);
+  //Inicia com todos os reles desligado
+  controle.parada();
+  //Inicia com a ventilacao fechada
+  ventilacao.movimento(FECHAMENTO);
+
+  digital.pullup(3, 2, 3, 12);
+
 }//fim da funcao setup
 
 //Funcao para execucao do codigo em ciclo infinito.
 void loop() {
-    //Tarefa realizada a cada 10 milisegundo
-    if ( ( timer.millis() - temporizacao.ms10 ) >= 10) {      //Testa se passou 10ms
-        temperatura.atualiza();                               //Atualiza as leituras de temperatura
-        acao();                                               //Chama funcao de acoes de controle
-        mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostrafuncao
-        temporizacao.ms10 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 10ms
-    }//fim da tarefa de 10ms
-    //Tarefa realizada a cada 60 milisegundo
-    if ( ( timer.millis() - temporizacao.ms60 ) >= 60) {      //Testa se passou 60ms
-        teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclas
-        temporizacao.ms60 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 60ms
-    }//fim da tarefa de 60ms
-    //Tarefa realizada a cada 500 milisegundo
-    if ( ( timer.millis() - temporizacao.ms500 ) >= 500) {    //Testa se passou 500ms
-        medirVolume();                                        //Atualiza a leitura de volume do reservatorio
-        relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
-        temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
-    }//fim da tarefa de 500ms
-    //Tarefa realizada a cada 1 segundo
-    if ( ( timer.millis() - temporizacao.s1 ) >= 1000) {      //Testa se passou 1 segundo    
-        controle.sinalizar();                                 //Sinaliza nivel de agua, se reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
-        temporizacao.s1 = timer.millis();                     //Salva o tempo atual para nova tarefa apos 1s
-    }//fim da tarefa de 1s
+
+  //Tarefa realizada a cada 2 milisegundo
+  if ( ( timer.millis() - temporizacao.ms2 ) >= 2) {        //Testa se passou 2ms
+
+    if (!digital.read(2)) {
+      ventilacao.automatico(LOW);
+      ventilacao.movimento(FECHA);
+    }
+
+    else if (!digital.read(3)) {
+      ventilacao.automatico(HIGH);
+      ventilacao.movimento(ABRE);
+    }
+
+    else if (!digital.read(12)) {
+      ventilacao.automatico(TOGGLE);
+    }
+    
+    ventilacao.automatico();
+    
+    temporizacao.ms2 = timer.millis();                    //Salva o tempo atual para nova tarefa apos 2ms
+  
+  }//fim da tarefa de 2ms
+
+  //Tarefa realizada a cada 10 milisegundo
+  if ( ( timer.millis() - temporizacao.ms10 ) >= 10) {      //Testa se passou 10ms
+    temperatura.atualiza();                               //Atualiza as leituras de temperatura
+    acao();                                               //Chama funcao de acoes de controle
+    mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostrafuncao
+    temporizacao.ms10 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 10ms
+  }//fim da tarefa de 10ms
+
+  //Tarefa realizada a cada 60 milisegundo
+  if ( ( timer.millis() - temporizacao.ms60 ) >= 60) {      //Testa se passou 60ms
+    teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclas
+    temporizacao.ms60 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 60ms
+  }//fim da tarefa de 60ms
+
+  //Tarefa realizada a cada 500 milisegundo
+  if ( ( timer.millis() - temporizacao.ms500 ) >= 500) {    //Testa se passou 500ms
+    medirVolume();                                        //Atualiza a leitura de volume do reservatorio
+    relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
+    temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
+  }//fim da tarefa de 500ms
+
+  //Tarefa realizada a cada 1 segundo
+  if ( ( timer.millis() - temporizacao.s1 ) >= 1000) {      //Testa se passou 1 segundo
+    controle.sinalizar();                                 //Sinaliza nivel de agua, se reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
+    temporizacao.s1 = timer.millis();                     //Salva o tempo atual para nova tarefa apos 1s
+  }//fim da tarefa de 1s
+
 }//fim da funcao loop
 
 /**************************************************************************************************************************

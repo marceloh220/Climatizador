@@ -33,40 +33,42 @@
 
 //interrupcao de overflow do temporizador da captura
 void capturaOVF() {
-  
+
   reservatorio.ovf++;                             //Registra estouro do temporizador de captura
-  
+
 }//fim do overflow do temporizador de captura
 
 //interrupcao de deteccao da borda de subida do sinal no pino de captura
 void capturaSubida() {
-  
+
   captura.prescale(1);                            //Liga o temporizador de captura com prescale 1
   captura.attach(CAPT, FALLING, capturaDescida);  //Configura captura (CAPT) para detectar a borda de descida do sinal (FALLING)
   captura.attach(OVF, capturaOVF);                //Ativa overflow (OVF) para detectar o estouro do temporizador de captura
-  
+
 }//fim da deteccao da borda de subida
 
 //interrupcao de deteccao da borda de descida do sinal no pino de captura
 void capturaDescida() {
-  
-  captura.prescale(OFF);                              //Desliga o temporizador da captura
+
+  captura.prescale(OFF);                              //Desliga o temporizador de captura
   captura.detach(CAPT);                               //Para a interrupcao de captura (CAPT)
-  captura.detach(OVF);                                //Para a interrupcao de overflow (OVF) do temporizaodo de captura
+  captura.detach(OVF);                                //Para a interrupcao de overflow (OVF) do temporizador de captura
   reservatorio.captura = captura.capt();              //Salva o tempo de captura
   reservatorio.captura += (reservatorio.ovf * 65535); //Soma a captura com os overflows, se houver
-  
+
 }//fim da deteccao da borda de descida
 
 //Funcao que inicia a medicao do volume de agua do reservatorio
 void medirVolume() {
 
+  uint8_t medicaoOK;
+
   //prepara pino de trigger
-  digital.mode(pinUltrason, OUTPUT);			        //pino de trigger do sensor de ultrasson configurado como saida
+  digital.mode(pinUltrason, OUTPUT);			            //pino de trigger do sensor de ultrasson configurado como saida
 
   //prepara o temporizador de captura
-  captura.timer(CLEAR);                           //Limpa o temporizador de captura
-  reservatorio.ovf = 0;                           //Limpa registro de estouros do temporizador de captura
+  captura.timer(CLEAR);                               //Limpa o temporizador de captura
+  reservatorio.ovf = 0;                               //Limpa registro de estouros do temporizador de captura
 
   //prepara captura
   captura.attach(CAPT, RISING, capturaSubida);
@@ -74,25 +76,42 @@ void medirVolume() {
   //do MCU para detectar uma borda de subida (RISING) do sinal no pino ICP
 
   //aciona sensor ultrassom
-  digital.write(pinUltrason, ON);				          //liga o pulso de ultrassom do sensor HC-SR04
-  delay.us(20);								                    //aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
-  digital.write(pinUltrason, OFF);				        //desliga o pulso de ultrassom do sensor
+  digital.write(pinUltrason, ON);				              //liga o pulso de ultrassom do sensor HC-SR04
+  delay.us(20);								                        //aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
+  digital.write(pinUltrason, OFF);				            //desliga o pulso de ultrassom do sensor
 
-  while (captura.attach());					              //Espera o fim da captura  
+  temporizacao.captura = timer.millis();              //registra a hora do inicio da captura
 
-  /*
-     Calculo das distancias do sensor ultrassonico
-     
-     Distancia = Largura do Pulso * Velocidade do Som / 2
-     
-     Largura do Pulso = 1/F_CPU * prescale * captura
-     
-     Distancia = 1/F_CPU * prescale * captura * Velocidade do Som / 2
-     Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
-     Distancia = captura * 1.06340625e-5 [m]
-  
-  */
-  reservatorio.metros = reservatorio.captura * 1.06340625e-5;
+  while (captura.attach()) {                          //Espera o fim da captura
+
+    if ( timer.millis() - temporizacao.captura > 30) {  //Se captura demorando (problema no sensor)
+      captura.prescale(OFF);                            //Desliga o temporizador de captura
+      captura.detach(CAPT);                             //Para a interrupcao de captura (CAPT)
+      captura.detach(OVF);                              //Para a interrupcao de overflow (OVF) do temporizador de captura
+      reservatorio.metros = alturaReservatorio;         //Sem possibilidade de ler o sensor calcula bloco de agua como 0
+      medicaoOK = 0;                                    //Marca medicao como nao possivel
+    }
+    else
+      medicaoOK = 1;                                    //Marca medicao realizada
+
+  }
+
+  if (medicaoOK) {                                      //Se medicao realizada
+
+    /*
+       Calculo das distancias do sensor ultrassonico
+
+       Distancia = Largura do Pulso * Velocidade do Som / 2
+
+       Largura do Pulso = 1/F_CPU * prescale * captura
+
+       Distancia = 1/F_CPU * prescale * captura * Velocidade do Som / 2
+       Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
+       Distancia = captura * 1.06340625e-5 [m]
+
+    */
+    reservatorio.metros = reservatorio.captura * 1.06340625e-5;
+  }
 
   //cm = m * 10e2
   reservatorio.centimetros = reservatorio.metros * 1e2;
