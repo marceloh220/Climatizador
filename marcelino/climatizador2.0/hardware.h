@@ -50,10 +50,22 @@
 // === Pinos do Arduino ===
 
 #define pinTeclado          A3        //pino de leitura do teclado analogico
-#define pinLM35             A1        //pino de leitura do sensor de temperatura LM35
+#define pinLM35             A2        //pino de leitura do sensor de temperatura LM35
 
 #define pinUltrason          9        //pino trigger do sensor de nivel ultrassonico
 #define pinEcho            ICP        //pino de echo do sensor de nivel ultrassonico
+
+#define pinfimdeCurso       10        //fim de curso da movimentacao do direcionamento horizontal da ventilacao
+
+#define encoderA             6        //pino A do encoder para movimentacao horizontal da ventilacao
+#define encoderB             7        //pino B do encoder para movimentacao horizontal da ventilacao
+#define encoderButton       11        //pino do botao tactil do encoder
+
+#define motorPA              2
+#define motorPB              3
+#define motorPC              4
+#define motorPD              5
+
 
 // === Pinos do Relay ===
 
