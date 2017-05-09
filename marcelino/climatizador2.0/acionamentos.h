@@ -1,5 +1,5 @@
-#ifndef _ACAO_H
-#define _ACAO_H
+#ifndef _ACIONAMENTOS_H
+#define _ACIONAMENTOS_H
 
 /**************************************************************************************************************************
 
@@ -32,7 +32,7 @@
 ***************************************************************************************************************************/
 
 //Funcao que realiza a acao da tecla pressionada
-void acao() {
+void acionamentos() {
 
   uint8_t tecla = teclado.leitura();	//Verifica a tecla pressionada
   uint8_t elem = tamVet(mostra) - 1;	//verifica a quantidade de elementos no vetor mostra

@@ -61,7 +61,7 @@ void mostraNivel();
 void mostraHora();
 void medirVolume();
 
-void acao();
+void acionamentos();
 
 void motorPasso();
 void capturaOVF();
@@ -235,8 +235,8 @@ void loop() {
   if ( ( timer.millis() - temporizacao.ms10 ) >= 10) {    //Testa se passou 10ms
 
     temperatura.atualiza();                               //Atualiza as leituras de temperatura
-    acao();                                               //Chama funcao de acoes de controle
-    mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostrafuncao
+    acionamentos();                                       //Chama funcao de acoes de controle
+    mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostra
 
     serial.println(passo.passos());                       //Teste de quantos passos foram dados pelo motor de passo
 
@@ -293,7 +293,7 @@ void loop() {
 #include "mostraVelocidade.h"
 #include "mostraNivel.h"
 #include "mostraHora.h"
-#include "acao.h"
+#include "acionamentos.h"
 #include "medirVolume.h"
 #include "interrupcoes.h"
 #include "erros.h"
