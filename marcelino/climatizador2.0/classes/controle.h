@@ -187,8 +187,15 @@ public:
 		
 	}//fim do metodo reservatorio
 
+	void reles(uint8_t pin, uint8_t modo) {
+		if(modo == LOW)
+			Reles::desliga(pinos[pin]);
+		else if(modo == HIGH)
+			Reles::liga(pinos[pin]);
+		else if(modo == TOGGLE)
+			Reles::troca(pinos[pin]);
+	}
 	
-
 };
 
 #endif

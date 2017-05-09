@@ -61,10 +61,12 @@
 #define encoderB             7        //pino B do encoder para movimentacao horizontal da ventilacao
 #define encoderButton       11        //pino do botao tactil do encoder
 
-#define motorPA              2
-#define motorPB              3
-#define motorPC              4
-#define motorPD              5
+#define motorPA              2        //pino laranja do motor de passo
+#define motorPB              3        //pino amarelo do motor de passo
+#define motorPC              4        //pino branco do motor de passo (eu acho)
+#define motorPD              5        //pino preto o motor de passo
+
+#define tempoUsMotorPasso 5000        //tempo da movimentacao do motor de passo em microsegundos
 
 
 // === Pinos do Relay ===

@@ -43,29 +43,64 @@
 #define ANODO	2
 #endif
 
-class Passo: private Digital {
+//Uso do motor de passo com movimentacao direta
+#ifndef DIRETO
+#define DIRETO	1
+#endif
+
+//Uso do motor de passo com movimentacao inversa
+#ifndef INVERSO
+#define INVERSO	1
+#endif
+
+class Passo {
 
 private:
 
-	int8_t passo;
-	int16_t _passos;
-	uint8_t pinos[4];
+	int8_t _passo;
+	int _passosAndados;
+	volatile uint8_t* port[4];
+	volatile uint8_t* ddr[4];
+	uint8_t bit[4];
 	uint8_t _modo;
+	uint8_t _sentido;
 
 	void configura(uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t modo) {
+
+		this->bit[0]  = get_sfr(a);
+		this->port[0] = get_PORT(this->bit[0]);
+		this->ddr[0]  = get_DDR(this->bit[0]);
+		this->bit[0]  = get_bit(a);
 		
-		if(modo == CATODO)
-			Digital::clear(4,a,b,c,d);
-		else if(modo == ANODO)
-			Digital::set(4,a,b,c,d);
-			
-		Digital::output(4,a,b,c,d);
+		this->bit[1]  = get_sfr(b);
+		this->port[1] = get_PORT(this->bit[1]);
+		this->ddr[1]  = get_DDR(this->bit[1]);
+		this->bit[1]  = get_bit(b);
 		
-		this->pinos[0] = a;
-		this->pinos[1] = b;
-		this->pinos[2] = c;
-		this->pinos[3] = d;
+		this->bit[2]  = get_sfr(c);
+		this->port[2] = get_PORT(this->bit[2]);
+		this->ddr[2]  = get_DDR(this->bit[2]);
+		this->bit[2]  = get_bit(c);
+
+		this->bit[3]  = get_sfr(d);
+		this->port[3] = get_PORT(this->bit[3]);
+		this->ddr[3]  = get_DDR(this->bit[3]);
+		this->bit[3]  = get_bit(d);
+		
 		this->_modo = modo;
+
+		for(int i = 0; i < 4; i++)
+				*this->ddr[i] |= this->bit[i];
+
+		if(modo == CATODO) {
+			for(int i = 0; i < 4; i++)
+				*this->port[i] &= ~this->bit[i];
+		}
+		else if(modo == ANODO) {
+			for(int i = 0; i < 4; i++)
+				*this->port[i] |= this->bit[i];
+		}
+				
 	}
 	
 public:
@@ -79,67 +114,105 @@ public:
 	}//fim do construtor
 
 	//mantem o motor parado
-	void parada()
+	inline void parada()
 	{
 		
 		if(this->_modo == CATODO) {
-			for(int i = 0; i < 3; i++)
-				Digital::write(this->pinos[i],LOW);
+			for(int i = 0; i < 4; i++)
+				*this->port[i] &= ~this->bit[i];
 		}
 		else if(this->_modo == ANODO) {
-			for(int i = 0; i < 3; i++)
-				Digital::write(this->pinos[i],HIGH);
+			for(int i = 0; i < 4; i++)
+				*this->port[i] |= this->bit[i];
 		}
 			
 	}//fim do metodo parada
 
 	//gira motor no sentido horario
-	void horario()
+	inline void horario()
 	{
 		
 		if(this->_modo == CATODO)
-			Digital::write(this->pinos[this->passo++],LOW);
+			*this->port[this->_passo] &= ~this->bit[this->_passo];
 		else if(this->_modo == ANODO)
-			Digital::write(this->pinos[this->passo++],HIGH);
-
-		if(this->passo == 4)
-			this->passo = 0;
+			*this->port[this->_passo] |= this->bit[this->_passo];
+			
+		this->_passo++;
+		if(this->_passo == 4)
+			this->_passo = 0;
 			
 		if(this->_modo == CATODO)
-			Digital::write(this->pinos[this->passo],HIGH);
+			*this->port[this->_passo] |= this->bit[this->_passo];
 		else if(this->_modo == ANODO)
-			Digital::write(this->pinos[this->passo],LOW);
+			*this->port[this->_passo] &= ~this->bit[this->_passo];
 
-		this->_passos++;
+		this->_passosAndados++;
 		
 	}//fim do metodo horario
 
 	//gira motor no sentido antihorario
-	void antihorario()
+	inline void antihorario()
 	{
 		
 		if(this->_modo == CATODO)
-			Digital::write(this->pinos[this->passo--],LOW);
+			*this->port[this->_passo] &= ~this->bit[this->_passo];
 		else if(this->_modo == ANODO)
-			Digital::write(this->pinos[this->passo--],HIGH);
+			*this->port[this->_passo] |= this->bit[this->_passo];
 
-		if(this->passo == -1)
-			this->passo = 3;
+		this->_passo--;
+		if(this->_passo == -1)
+			this->_passo = 3;
 
 		if(this->_modo == CATODO)
-			Digital::write(this->pinos[this->passo],HIGH);
+			*this->port[this->_passo] |= this->bit[this->_passo];
 		else if(this->_modo == ANODO)
-			Digital::write(this->pinos[this->passo],LOW);
+			*this->port[this->_passo] &= ~this->bit[this->_passo];
 
-		this->_passos--;
+		this->_passosAndados--;
 		
 	}//fim do metodo antihorario
+
+	//gira o motor automaticamente de um valor minimo ate um valor maximo
+	inline void automatico(int min, int max, uint8_t modo = DIRETO) {
+			
+		if(this->_passosAndados < min) {
+			if(modo == DIRETO)
+				this->horario();
+			else if(modo == INVERSO)
+				this->antihorario();
+		}
+		else if(this->_passosAndados > max) {
+			if(modo == DIRETO)
+				this->antihorario();
+			else if(modo == INVERSO)
+				this->horario();
+		}
+
+		else if(this->_sentido) {
+			if(modo == DIRETO)
+				this->horario();
+			else if(modo == INVERSO)
+				this->antihorario();
+		}
+		else {
+			if(modo == DIRETO)
+				this->antihorario();
+			else if(modo == INVERSO)
+				this->horario();
+		}
+
+		if(this->_passosAndados == max)
+			this->_sentido = 0;
+		else if(this->_passosAndados == min)
+			this->_sentido = 1;
+			
+	}//fim do metodo automatico
 
 	//para verificar quantos passos foram dados
 	inline int16_t passos()
 	{
 		
-		return this->_passos;
+		return this->_passosAndados;
 		
 	}//fim do metodo passos
 
@@ -147,7 +220,7 @@ public:
 	inline void passos(uint16_t value)
 	{
 		
-		this->_passos = value;
+		this->_passosAndados = value;
 		
 	}//fim do metodo passos
 		

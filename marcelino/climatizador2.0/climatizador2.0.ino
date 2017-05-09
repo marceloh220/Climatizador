@@ -59,14 +59,17 @@ void mostraTemperatura();
 void mostraVelocidade();
 void mostraNivel();
 void mostraHora();
+void medirVolume();
 
 void acao();
 
+void motorPasso();
 void capturaOVF();
 void capturaDescida();
 void capturaSubida();
+void resetWDT();
 
-void medirVolume();
+void problema(uint8_t tipo);
 
 //Mede tamanho de vetores
 #define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
@@ -107,7 +110,7 @@ const uint8_t graus[8] PROGMEM =
 //Para temporizacoes
 typedef struct Time {
   uint32_t ms2, ms10, ms60, ms500, s1;
-  uint32_t captura;
+  uint32_t testes;//para testes com tempo auxiliares
 } time_t;
 time_t temporizacao;
 
@@ -121,6 +124,8 @@ class Volume {
     uint8_t  test;
 };
 Volume reservatorio;
+
+byte testeMotor = 0;
 
 /**************************************************************************************************************************
                                       Inicializacao dos modulos do core Marcelino
@@ -146,9 +151,9 @@ Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
 
 
 //Classe para controle do motor de passo
-Passo passo(motorPA, motorPB, motorPC, motorPD, CATODO);
+Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO);
 /*
-   Fiz umas implementacoes initiais para utilizar com o aplicativo do motor de passo
+   Fiz umas implementacoes iniciais para utilizar com o aplicativo do motor de passo
    mas o resto vou deixar com voces, leiam os metodos que a classe Passo possui
    e usem para implementar a aplicacao.
 
@@ -166,6 +171,9 @@ Passo passo(motorPA, motorPB, motorPC, motorPD, CATODO);
    antihorario();
    Gira motor de passo no sentido antihorario
 
+   automatico(minimo, maximo);
+   Gira o motor de passo automaticamente de um valor minimo ate um valor maximo (-35mil ate +35mil)
+
    passos();
    Retorna o numero de passos que o motor ja deu (positivos ou negativos ate 35mil passos)
 
@@ -178,38 +186,10 @@ Passo passo(motorPA, motorPB, motorPC, motorPD, CATODO);
                                                    Funcoes principais
 ***************************************************************************************************************************/
 
-void motorPasso()
-{
-
-  if (digital.ifclear(encoderA)) {      //quando encoder girando em um sentido
-    if (digital.read(pinfimdeCurso))    //enquanto nao chegou no final do curso
-      passo.antihorario();              //gira motor no sentido antihorario para fechar a ventilacao
-    else                                //se chegou no final do curso
-      passo.passos(0);                  //reseta o numero de passos
-  }
-
-  else if (digital.ifclear(encoderB)) { //quando encoder girando em outro sentido
-    if (passo.passos() < 1500)          //enquanto nao chegou no limite de abertura
-      passo.horario();                  //gira o motor no sentido horario para abrir a ventilacao
-  }
-
-  else if (digital.ifclear(encoderButton)) {
-    //Quando o botao do encoder for pressionado
-    //Aqui as coisas serao executadas a cada 4ms.
-    //Dependendo da aplicacao talvez seja melhor voces colocarem a implementacao de pressao do botao do encoder
-    //em outra constante de tempo, como nas tarefas de 500ms ou outra constante de tempo.
-    //Isto e uma interrupcao, nao usem delays aqui.
-  }
-
-  else                                  //quando nenhuma atividade no encoder
-    passo.parada();                     //para o motor e poupa energia
-
-}
-
 
 //Funcao de configuracao do MCU
 void setup() {
-  
+
   //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
   //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   for (int i = 0; i < 8; i++)
@@ -224,20 +204,26 @@ void setup() {
   //Inicia com todos os reles desligado
   controle.parada();
 
-  digital.pullup(3, encoderA, encoderB, pinfimdeCurso);
+  digital.pullup(4, encoderA, encoderB, encoderButton, pinfimdeCurso);
+  digital.mode(13,OUTPUT);
 
-  motor.period(4000);
-  motor.attach(OVF, motorPasso);
+  temporizacao.testes = timer.millis();
 
   //Inicia com a ventilacao fechada
   while (digital.read(pinfimdeCurso)) {
     passo.antihorario();
     delay.ms(4);
     passo.passos(0);
+    if(timer.millis() - temporizacao.testes >= 10000)
+      problema(1);
   }
 
-  wdt.config(RESET);      //configura o watch dog timer (WDT) para resetar o MCU se ele travar
-  wdt.timeout(W_4S);      //configura o estouro do WDT para 4 segundos
+  motor.period(tempoUsMotorPasso);
+  motor.attach(OVF, motorPasso);
+
+  wdt.config(INT_RESET);  //configura o watch dog timer (WDT) para resetar o MCU se ele travar e executa uma interrupcao antes de resetar
+  wdt.timeout(W_8S);      //configura o estouro do WDT para 8 segundos
+  wdt.attach(resetWDT);   //executa a funcao "resetWDT()" caso o WDT reinicie o MCU
   wdt.enable();           //habilita o WDT
 
 }//fim da funcao setup
@@ -271,6 +257,17 @@ void loop() {
 
     medirVolume();                                        //Atualiza a leitura de volume do reservatorio
     relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
+
+    if (digital.ifclear(encoderButton)) {                 //Se botao do encoder pressionado
+      testeMotor ^= (1<<0);                               //Liga ou desliga o movimento automatico do motor de passo
+      testeMotor &= ~(1 << 1);
+      controle.reles(livre1,TOGGLE);                      //Liga led de sinalizacao
+    }
+    else if(testeMotor & (1<<1)) {
+      controle.reles(livre1,LOW);
+      testeMotor &= ~(1<<1);
+    }
+
     temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
 
   }//fim da tarefa de 500ms
@@ -298,4 +295,6 @@ void loop() {
 #include "mostraHora.h"
 #include "acao.h"
 #include "medirVolume.h"
+#include "interrupcoes.h"
+#include "erros.h"
 

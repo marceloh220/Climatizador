@@ -31,32 +31,6 @@
 
 ***************************************************************************************************************************/
 
-//interrupcao de overflow do temporizador da captura
-void capturaOVF() {
-
-  reservatorio.ovf++;                             //Registra estouro do temporizador de captura
-
-}//fim do overflow do temporizador de captura
-
-//interrupcao de deteccao da borda de subida do sinal no pino de captura
-void capturaSubida() {
-
-  captura.prescale(1);                            //Liga o temporizador de captura com prescale 1
-  captura.attach(CAPT, FALLING, capturaDescida);  //Configura captura (CAPT) para detectar a borda de descida do sinal (FALLING)
-  captura.attach(OVF, capturaOVF);                //Ativa overflow (OVF) para detectar o estouro do temporizador de captura
-
-}//fim da deteccao da borda de subida
-
-//interrupcao de deteccao da borda de descida do sinal no pino de captura
-void capturaDescida() {
-
-  captura.prescale(OFF);                              //Desliga o temporizador de captur
-  reservatorio.captura = captura.capt();              //Salva o tempo de captura
-  reservatorio.captura += (reservatorio.ovf * 65535); //Soma a captura com os overflows, se houver
-  reservatorio.test = 1;                              //Indica que captura foi finalizada
-
-}//fim da deteccao da borda de descida
-
 //Funcao que inicia a medicao do volume de agua do reservatorio
 void medirVolume() {
 
@@ -104,7 +78,11 @@ void medirVolume() {
   }
   
   //se nao, coloca sensor como nao lido
-  else reservatorio.metros = alturaReservatorio;
+  else {
+    problema(2);
+    reservatorio.metros = alturaReservatorio;
+    delay.ms(2000);
+  }
 
   //cm = m * 10e2
   reservatorio.centimetros = reservatorio.metros * 1e2;
