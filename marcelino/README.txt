@@ -22,10 +22,10 @@ F_CPU 16MHz (Cristal externo)
 
 Instalação do core Marcelino:
 
-copiar a pasta marcelino para a pasta hardware no diretorio de instalacao do Arudino IDE
+copiar a pasta ..\marcelino para a pasta hardware no diretorio de instalacao do Arudino IDE
 
 windows 7 32bits
-marcelino >> C:\Program Files\Arduino\hardware
+..\marcelino >> C:\Program Files\Arduino\hardware
 windows 7 64bits
 marcelino >> C:\Program Files (x86)\Arduino\hardware
 
@@ -42,3 +42,5 @@ F_CPU 8MHz	(	oscilador interno,
 				dois pinos digitais extras 9 (D20) e 10 (D21),
 				possibilidade de uso do timer 2 em modo assincrono com cristal nos pinos 9 (x1) e 10 (x2)
 			 )
+
+Exemplos e manuais dos modulos do core Marcelino em ..\examples
