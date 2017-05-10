@@ -36,39 +36,81 @@
 void motorPasso()
 {
 
-  if (digital.ifclear(encoderA)) {            //quando encoder girando em um sentido
+  uint8_t velocidade = controle.velocidade();
 
-    if (digital.ifset(pinfimdeCurso))         //enquanto nao chegou no final
-      passo.antihorario();                    //gira motor no sentido antihorario para fechar a ventilacao
+  // === se ventilacao ligada ===
 
-    else {                                    //se chegou no final meio aberto
-      passo.passos(0);
-      passo.parada();                         //para o motor e poupa energia
+  //se ventilacao ligada
+  if (velocidade > 0) {
+
+    //sai do modo de manutencao
+    teste.clear(manutencao);
+
+    //se em modo automatico
+    if (teste.ifset(automatic)) {
+      passo.automatico(300, 1400);
+      posicaoEncoder = passo.passos();
+    }//movimenta paletas da posicao 300 ate 1400 automaticamente
+
+    //se posicionamento manual
+    else {
+      if (passo.passos() < 300)
+        posicaoEncoder = 300;
+      passo.posicao(posicaoEncoder);
     }
+    //posiciona paletas na posicao do encoder
 
-    testeMotor &= ~(1 << 0);
-    testeMotor |= (1 << 1);
+  }//fim do teste de motor de ventilacao ligado
 
-  }//fim do teste de encoder girando em um sentido
 
-  else if (digital.ifclear(encoderB)) {       //quando encoder girando em outro sentido
+  // == se em modo de manutencao ===
 
-    if (passo.passos() < 1500)                //enquanto nao chegou no limite de abertura
-      passo.horario();                        //gira o motor no sentido horario para abrir a ventilacao
+  //se movimentado paletas com ventilacao desligada (modo de manutencao)
+  else if (teste.ifset(manutencao)) {
+    //posiciona paletas
+    passo.posicao(posicaoEncoder);
+  }//fim do teste de modo de manutencao
 
-    else                                      //se chegou no limite de abertura
-      passo.parada();                         //para o motor e poupa energia
+  // === se ventilacao desligada e fora do modo de manutencao ===
 
-    testeMotor &= ~(1 << 0);
-    testeMotor |= (1 << 1);
+  //se motor desligado e nao esta em modo de manutencao
+  else {
+    if (digital.ifset(pinfimdeCurso))
+      passo.antihorario();//fecha ventilacao
+    else {
+      passo.parada();
+      passo.passos(0);
+      posicaoEncoder = 0;
+    }
+  }
 
-  }//fim do teste de encoder girando em outro sentido
+  // === monitoramento do encoder ===
 
-  else if (testeMotor & (1 << 0))             //se o teste de motor indicar movimentacao automatica
-    passo.automatico(300, 1400);              //gira o motor de passo automaticamente de ventilacao quase fechada ate ventilacao aberta
-
-  else                                        //quando nenhuma atividade no encoder
-    passo.parada();                           //para o motor e poupa energia
+  // === simula encoder com teclas ===
+  //se girando em um sentido incrementa a posicao ate 1500
+  if (digital.ifclear(encoderA)) {
+    teste.clear(automatic);
+    teste.clear(sinaliza);
+    if (posicaoEncoder < 1500)
+      posicaoEncoder++;
+    if (velocidade == 0)
+      teste.set(manutencao);
+  }
+  //se girando em outro sentido decrementa a posicao ate 300 com ventilacao ligada e ate 0 com ventilacao desligada
+  if (digital.ifclear(encoderB)) {
+    teste.clear(automatic);
+    teste.clear(sinaliza);
+    if (velocidade > 0) {
+      if (posicaoEncoder > 300)
+        posicaoEncoder--;
+    }
+    else {
+      teste.set(manutencao);
+      if (posicaoEncoder > 0)
+        posicaoEncoder--;
+    }
+  }
+  // === fim da simulacao do encoder ===
 
 }
 
@@ -104,8 +146,7 @@ void capturaDescida() {
 
 void resetWDT()
 {
-  problema(3);
-  delay.ms(3000);
+  erro(3);
 }
 
 #endif

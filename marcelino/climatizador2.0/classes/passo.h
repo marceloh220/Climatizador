@@ -58,7 +58,7 @@ class Passo {
 private:
 
 	int8_t _passo;
-	int _passosAndados;
+	int16_t _passosAndados;
 	volatile uint8_t* port[4];
 	volatile uint8_t* ddr[4];
 	uint8_t bit[4];
@@ -223,6 +223,17 @@ public:
 		this->_passosAndados = value;
 		
 	}//fim do metodo passos
+
+	//metodo para posicionar o motor de passo
+	inline void posicao(int16_t pos)
+	{
+			if(this->_passosAndados < pos)
+				this->horario();
+			else if(this->_passosAndados > pos)
+				this->antihorario();
+			else
+				this->parada();
+	}
 		
 };
 

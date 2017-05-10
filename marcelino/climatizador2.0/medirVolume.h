@@ -79,9 +79,8 @@ void medirVolume() {
   
   //se nao, coloca sensor como nao lido
   else {
-    problema(2);
+    erro(2);
     reservatorio.metros = alturaReservatorio;
-    delay.ms(2000);
   }
 
   //cm = m * 10e2

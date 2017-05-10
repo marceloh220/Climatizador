@@ -50,6 +50,8 @@
 #include "classes/temperatura.h"
 #include "classes/relogio.h"
 #include "classes/passo.h"
+//#include "classes/horizontal.h"
+#include "classes/encoder.h"
 
 /**************************************************************************************************************************
                                                Prototipo de funcoes auxiliares
@@ -69,7 +71,7 @@ void capturaDescida();
 void capturaSubida();
 void resetWDT();
 
-void problema(uint8_t tipo);
+void erro(uint8_t tipo);
 
 //Mede tamanho de vetores
 #define tamVet(vet) (sizeof(vet)/sizeof((vet)[0]))
@@ -117,15 +119,23 @@ time_t temporizacao;
 //Para medir volume de agua no reservatorio
 class Volume {
   public:
-    float milimetros, centimetros, metros;
-    float litros, centilitros, mililitros;
-    uint32_t captura;
-    uint8_t ovf;
-    uint8_t  test;
+    float     milimetros, centimetros, metros;
+    float     litros, centilitros, mililitros;
+    uint32_t  captura;
+    uint8_t   ovf;
+    uint8_t   test;
 };
 Volume reservatorio;
 
-byte testeMotor = 0;
+uint16_t posicaoEncoder = 0;
+
+Register teste;
+
+#define automatic  0
+#define sinaliza   1
+#define horizontal 2
+#define manutencao 3
+#define desligou   4
 
 /**************************************************************************************************************************
                                       Inicializacao dos modulos do core Marcelino
@@ -134,7 +144,7 @@ byte testeMotor = 0;
 Digital digital;          //Controle dos pinos digital
 Timer0  timer;            //Temporizacoes com o timer 0
 Timer1  captura;          //Captura para leitura de largura de pulso do sensor de nivel com hardware do timer 1
-Serial  serial;           //Modulo Serial para comunicacao com computador
+Serial  serial;    //Modulo Serial para comunicacao com computador
 Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor ultrassonico)
 WDT     wdt;              //Watch Dog Timer (WDT) para vigiar o MCU e evitar travamentos
 Timer2  motor;            //Timer 2 para temporizar o acionamento do motor de passo
@@ -150,14 +160,10 @@ Controle controle(relayADDRESS, INVERSO);     //Controle dos atuadores com logic
 Teclado teclado(pinTeclado);                  //Leitura do teclado analogico
 
 
-//Classe para controle do motor de passo
+//Classe para controle do motor de passo, objeto instanciado em "classes/horizontal.h"
 Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO);
 /*
-   Fiz umas implementacoes iniciais para utilizar com o aplicativo do motor de passo
-   mas o resto vou deixar com voces, leiam os metodos que a classe Passo possui
-   e usem para implementar a aplicacao.
-
-   metodos da classe Passo
+   Metodos da classe Passo
 
    Passo nome(a,b,c,d,modo);
    Inicia o modulo com os pinos ligados no motor de passo e o modo de operacao (ANODO comum / CATODO comum)
@@ -182,6 +188,8 @@ Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO);
 
 */
 
+Encoder encoder(14, 15);
+
 /**************************************************************************************************************************
                                                    Funcoes principais
 ***************************************************************************************************************************/
@@ -205,24 +213,22 @@ void setup() {
   controle.parada();
 
   digital.pullup(4, encoderA, encoderB, encoderButton, pinfimdeCurso);
-  digital.mode(13,OUTPUT);
-
-  temporizacao.testes = timer.millis();
 
   //Inicia com a ventilacao fechada
   while (digital.read(pinfimdeCurso)) {
     passo.antihorario();
     delay.ms(4);
-    passo.passos(0);
-    if(timer.millis() - temporizacao.testes >= 10000)
-      problema(1);
+    if (passo.passos() < -2500)
+      erro(1);
   }
+
+  passo.passos(0);
 
   motor.period(tempoUsMotorPasso);
   motor.attach(OVF, motorPasso);
 
   wdt.config(INT_RESET);  //configura o watch dog timer (WDT) para resetar o MCU se ele travar e executa uma interrupcao antes de resetar
-  wdt.timeout(W_8S);      //configura o estouro do WDT para 8 segundos
+  wdt.timeout(W_4S);      //configura o estouro do WDT para 4 segundos
   wdt.attach(resetWDT);   //executa a funcao "resetWDT()" caso o WDT reinicie o MCU
   wdt.enable();           //habilita o WDT
 
@@ -238,6 +244,7 @@ void loop() {
     acionamentos();                                       //Chama funcao de acoes de controle
     mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostra
 
+    serial.print("PASSO: ");
     serial.println(passo.passos());                       //Teste de quantos passos foram dados pelo motor de passo
 
     temporizacao.ms10 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 10ms
@@ -247,7 +254,11 @@ void loop() {
   //Tarefa realizada a cada 60 milisegundo
   if ( ( timer.millis() - temporizacao.ms60 ) >= 60) {    //Testa se passou 60ms
 
-    teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclas
+    teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclado
+
+    serial.print("Posicao do encoder: ");
+    serial.println(posicaoEncoder);
+
     temporizacao.ms60 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 60ms
 
   }//fim da tarefa de 60ms
@@ -258,15 +269,22 @@ void loop() {
     medirVolume();                                        //Atualiza a leitura de volume do reservatorio
     relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
 
-    if (digital.ifclear(encoderButton)) {                 //Se botao do encoder pressionado
-      testeMotor ^= (1<<0);                               //Liga ou desliga o movimento automatico do motor de passo
-      testeMotor &= ~(1 << 1);
-      controle.reles(livre1,TOGGLE);                      //Liga led de sinalizacao
+    //botao do encoder
+    if (controle.velocidade() > 0) {                      //Se ventilacao ligada
+      if (digital.ifclear(encoderButton)) {               //Se botao do encoder pressionado
+        teste.toggle(automatic);                          //Liga ou desliga o movimento automatico do motor de passo
+        teste.toggle(sinaliza);                           //Liga ou desliga sinalizacao de automatico
+      }
     }
-    else if(testeMotor & (1<<1)) {
-      controle.reles(livre1,LOW);
-      testeMotor &= ~(1<<1);
+    else {
+      teste.clear(automatic);
+      teste.clear(sinaliza);
     }
+
+    //sinalizado de movimentacao automatica das paletas horizontais
+    if (teste.ifset(sinaliza))                            //Se sinalizacao ligada
+      controle.reles(livre1, HIGH);                       //Liga sinalizacao de automatico
+    else controle.reles(livre1, LOW);                     //Se nao, desliga led de sinalizacao
 
     temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
 
@@ -281,6 +299,9 @@ void loop() {
   }//fim da tarefa de 1s
 
   wdt.clear();                                            //Limpa o watch dog timer (WDT) para evitar reset
+
+  if (teste.ifset(horizontal) )
+    erro(1);
 
 }//fim da funcao loop
 

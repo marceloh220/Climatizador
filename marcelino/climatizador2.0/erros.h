@@ -31,7 +31,10 @@
 
 ***************************************************************************************************************************/
 
-void problema(uint8_t tipo) {
+void erro(uint8_t tipo) {
+  
+  controle.parada();
+  passo.parada();
   
 	display.set(0,0);
 	display.print("Erro, problema: ");
@@ -40,17 +43,14 @@ void problema(uint8_t tipo) {
 	switch(tipo) {
 		
 		case 1:
-			controle.parada();
 			display.print("Paletas Horiz.  ");
 			break;
 			
 		case 2:
-			controle.parada();
 			display.print("Sensor de Nivel  ");
 			break;
 
     case 3:
-      controle.parada();
       display.print("CPU resetando   ");
       break;
 			
@@ -58,6 +58,9 @@ void problema(uint8_t tipo) {
 			display.print("Desconhecido    ");
 			break;
 	}
+
+  delay.ms(3000);
+ 
 }
 
 

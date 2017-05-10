@@ -57,8 +57,8 @@
 
 #define pinfimdeCurso       10        //fim de curso da movimentacao do direcionamento horizontal da ventilacao
 
-#define encoderA        (1<<6)        //pino A do encoder para movimentacao horizontal da ventilacao
-#define encoderB        (1<<7)        //pino B do encoder para movimentacao horizontal da ventilacao
+#define encoderA             6        //pino A do encoder para movimentacao horizontal da ventilacao
+#define encoderB             7        //pino B do encoder para movimentacao horizontal da ventilacao
 #define encoderButton       11        //pino do botao tactil do encoder
 
 #define motorPA              2        //pino laranja do motor de passo
@@ -66,7 +66,7 @@
 #define motorPC              4        //pino branco do motor de passo (eu acho)
 #define motorPD              5        //pino preto o motor de passo
 
-#define tempoUsMotorPasso 5000        //tempo da movimentacao do motor de passo em microsegundos
+#define tempoUsMotorPasso 4000        //tempo da movimentacao do motor de passo em microsegundos
 
 
 // === Pinos do Relay ===
