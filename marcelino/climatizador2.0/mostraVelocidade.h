@@ -38,6 +38,8 @@ void mostraVelocidade() {
   display.print("Ventilacao");
   if (teste.ifset(automatic))
     display.print("  auto");
+  else if(teste.ifset(manutencao))
+    display.print("  mntc");
   else
     display.print("      ");
   uint8_t vel = controle.velocidade();	  //Verifica a velocidade
