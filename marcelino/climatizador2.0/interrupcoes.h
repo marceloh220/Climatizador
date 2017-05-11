@@ -136,11 +136,11 @@ void desligamentoP() {
 
 }
 
-funcoes reset = 0;    //vetor de reset
-
 void ligamentoP() {
 
-  reset();
+  sleep.disable(SLEEP);
+  wdt_enable(WDTO_15MS);
+  for (;;);
 
 }
 

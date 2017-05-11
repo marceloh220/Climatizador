@@ -32,35 +32,39 @@
 ***************************************************************************************************************************/
 
 void erro(uint8_t tipo) {
-  
+
   controle.parada();
   passo.parada();
-  
-	display.set(0,0);
-	display.print("Erro, problema: ");
-	display.set(0,1);
 
-	switch(tipo) {
-		
-		case 1:
-			display.print("Paletas Horiz.  ");
-			break;
-			
-		case 2:
-			display.print("Sensor de Nivel  ");
-			break;
+  display.set(0, 0);
+  display.print("Erro! Problema: ");
+  display.set(0, 1);
+
+  switch (tipo) {
+
+    case 1:
+      display.print("Paletas Horiz.  ");
+      break;
+
+    case 2:
+      display.print("Sensor de Nivel  ");
+      break;
 
     case 3:
       display.print("CPU resetando   ");
       break;
-			
-		default:
-			display.print("Desconhecido    ");
-			break;
-	}
 
-  delay.ms(3000);
- 
+    case 4:
+      display.print("Motor de Passo  ");
+      break;
+
+    default:
+      display.print("Desconhecido    ");
+      break;
+  }
+
+  delay.ms(5000);
+
 }
 
 

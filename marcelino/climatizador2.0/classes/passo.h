@@ -234,6 +234,16 @@ public:
 			else
 				this->parada();
 	}
+
+	void desligar() {
+		for(int i = 0; i < 4; i++)
+			*this->ddr[i] &= ~this->bit[i];
+	}
+
+	void ligar() {
+		for(int i = 0; i < 4; i++)
+			*this->ddr[i] |= this->bit[i];
+	}
 		
 };
 

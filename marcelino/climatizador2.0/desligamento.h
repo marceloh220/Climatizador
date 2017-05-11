@@ -3,10 +3,17 @@
 
 void desligamento() {
 
-  wdt.clear();
-  wdt.disable();
+  DDRB |= (1 << 5);
+  PORTB |= (1 << 5);
+
+
+
   controle.parada();
-  motor.detach(OVF);
+  display.background(OFF);
+  display.display(OFF);
+
+  wdt.disable();
+  sleep.disable(ALL);
 
   //Inicia com a ventilacao fechada
   while (digital.read(pinfimdeCurso)) {
@@ -16,14 +23,11 @@ void desligamento() {
       erro(1);
   }
 
-  passo.parada();
-  display.background(OFF);
-  display.display(OFF);
+  passo.desligar();
 
   external.attach(INT0, FALLING, ligamentoP);
-  sleep.disable(ALL);
-  sleep.enable(SLEEP);
   sleep.sleep(POWERDOWN);
+  for (;;);
 
 }
 

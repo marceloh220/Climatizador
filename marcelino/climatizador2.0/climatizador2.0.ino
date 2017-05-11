@@ -239,7 +239,9 @@ void setup() {
 
   external.attach(INT0, FALLING, desligamentoP);
 
-  //delay.ms(3000);
+  delay.ms(3000);
+
+  medirVolume();                                        //Atualiza a leitura de volume do reservatorio
 
 }//fim da funcao setup
 
@@ -275,7 +277,10 @@ void loop() {
   //Tarefa realizada a cada 500 milisegundo
   if ( (timer.millis() - temporizacao.ms500) >= 500) {    //Testa se passou 500ms
 
-    medirVolume();                                        //Atualiza a leitura de volume do reservatorio
+    //verifica se foi requerido entrada em modo de baixo consumo
+    if (teste.ifset(progOFF))
+      desligamento();
+
     relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
 
     //botao do encoder
@@ -295,17 +300,20 @@ void loop() {
       controle.reles(livre1, HIGH);                       //Liga sinalizacao de automatico
     else controle.reles(livre1, LOW);                     //Se nao, desliga led de sinalizacao
 
-    //verifica se foi requerido entrada em modo de baixo consumo
-    if (teste.ifset(progOFF)) {
-      desligamento();
-    }
-
     temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
 
   }//fim da tarefa de 500ms
 
   //Tarefa realizada a cada 1 segundo
   if ( (timer.millis() - temporizacao.s1) >= 1000) {      //Testa se passou 1 segundo
+
+    medirVolume();                                        //Atualiza a leitura de volume do reservatorio
+
+    if (!digital.read(pinfimdeCurso) && controle.velocidade() > 0) {
+      controle.velocidade(0);
+      passo.passos(0);
+      erro(4);
+    }
 
     controle.sinalizar();                                 //Sinaliza nivel de agua, se reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
     temporizacao.s1 = timer.millis();                     //Salva o tempo atual para nova tarefa apos 1s
@@ -314,6 +322,7 @@ void loop() {
 
   //Tarefa realizada a cada 30 segundo
   if ( (timer.millis() - temporizacao.s30) >= 30000) {    //Testa se passou 30 segundo
+
 
     relogio.posicao(0);
     mostraPTR = 0;
