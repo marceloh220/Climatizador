@@ -203,9 +203,9 @@ void setup() {
   display.background(ON);
 
   display.print("  Climatizador  ");
-  display.set(0,1);
+  display.set(0, 1);
   display.print(" ENG. Eletrica  ");
-  
+
   //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
   //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   for (int i = 0; i < 8; i++)
@@ -239,15 +239,13 @@ void setup() {
 
   external.attach(INT0, FALLING, desligamentoP);
 
-  delay.ms(3000);
+  //delay.ms(3000);
 
 }//fim da funcao setup
 
 //Funcao para execucao do codigo em ciclo infinito.
 void loop() {
-  
-  wdt.clear();
-  
+
   //Tarefa realizada a cada 10 milisegundo
   if ( (timer.millis() - temporizacao.ms10) >= 10) {      //Testa se passou 10ms
 
@@ -297,6 +295,11 @@ void loop() {
       controle.reles(livre1, HIGH);                       //Liga sinalizacao de automatico
     else controle.reles(livre1, LOW);                     //Se nao, desliga led de sinalizacao
 
+    //verifica se foi requerido entrada em modo de baixo consumo
+    if (teste.ifset(progOFF)) {
+      desligamento();
+    }
+
     temporizacao.ms500 = timer.millis();                  //Salva o tempo atual para nova tarefa apos 500ms
 
   }//fim da tarefa de 500ms
@@ -333,10 +336,6 @@ void loop() {
   //Tarefa realizada a cada 5min
   if ( (timer.millis() - temporizacao.m5) >= 300000) {    //Testa se passou 5min
 
-    teste.clear(progOFF);
-
-    wdt.clear();
-
     if (controle.velocidade() == 0)
       desligamento();
 
@@ -351,10 +350,6 @@ void loop() {
     temporizacao.s30 = timer.millis();
     temporizacao.m1 = timer.millis();
     temporizacao.m5 = timer.millis();
-  }
-
-  if (teste.ifset(progOFF)) {
-    desligamento();
   }
 
   wdt.clear();                                            //Limpa o watch dog timer (WDT) para evitar reset

@@ -131,6 +131,8 @@ void resetWDT()
 void desligamentoP() {
 
   teste.set(progOFF);
+  external.detachINT(INT0);
+  temporizacao.ms500 = timer.millis();
 
 }
 
