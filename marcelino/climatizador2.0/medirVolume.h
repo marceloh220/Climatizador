@@ -34,32 +34,14 @@
 //Funcao que inicia a medicao do volume de agua do reservatorio
 void medirVolume() {
 
-  reservatorio.test = 0;                              //Marca test como inicio de captura
-
-  //prepara pino de trigger
-  digital.mode(pinUltrason, OUTPUT);			            //Pino de trigger do sensor de ultrasson configurado como saida
-
-  //prepara o temporizador de captura
-  captura.timer(CLEAR);                               //Limpa o temporizador de captura
-  reservatorio.ovf = 0;                               //Limpa registro de estouros do temporizador de captura
-
-  //prepara captura
-  captura.attach(CAPT, RISING, capturaSubida);
-  //anexa a funcao 'capturaSubida' na interrupcao de captura (CAPT)
-  //do MCU para detectar uma borda de subida (RISING) do sinal no pino ICP
-
   //aciona sensor ultrassom
-  digital.write(pinUltrason, ON);				              //Liga o pulso de ultrassom do sensor HC-SR04
-  delay.us(20);								                        //Aguarda um tempo para que os pulsos de ultrassom sejam enviados pelo sensor
-  digital.write(pinUltrason, OFF);				            //Desliga o pulso de ultrassom do sensor
+  digital.write(pinUltrason, OFF);
+  delay.us(2);
+  digital.write(pinUltrason, ON);
+  delay.us(10);
+  digital.write(pinUltrason, OFF);
 
-  delay.ms(40);                                       //Espera o tempo maximo da captura
-
-  captura.detach(CAPT);                               //Para a interrupcao de captura (CAPT)
-  captura.detach(OVF);                                //Para a interrupcao de overflow (OVF) do temporizador de captura
-
-  //se captura realizada
-  if(reservatorio.test) {
+  uint32_t pulso = pulse.in(pinEcho,HIGH, 30);
 
   /*
      Calculo das distancias do sensor ultrassonico
@@ -73,21 +55,25 @@ void medirVolume() {
      Distancia = captura * 1.06340625e-5 [m]
 
   */
-  reservatorio.metros = reservatorio.captura * 1.06340625e-5;
-  
-  }
-  
-  //se nao, coloca sensor como nao lido
-  else {
+
+  reservatorio.milimetros = pulso * 0.34 / 2.0;
+  serial.print("Largura de pulso: ");
+  serial.println(reservatorio.milimetros);
+
+
+  if (pulso == 0)
+    reservatorio.testes++;
+  else
+    reservatorio.testes = 0;
+ 
+  if (reservatorio.testes > 5)
     erro(2);
-    reservatorio.metros = alturaReservatorio;
-  }
 
-  //cm = m * 10e2
-  reservatorio.centimetros = reservatorio.metros * 1e2;
+  //cm = mm * 10e-2
+  reservatorio.centimetros = reservatorio.milimetros * 1e-2;
 
-  //mm = m * 10e3
-  reservatorio.milimetros = reservatorio.metros * 1e3;
+  //m = mm * 10e-3
+  reservatorio.metros = reservatorio.milimetros * 1e-3;
 
   //subtrai a altura do reservatorio da distancia medida pelo sensor
   float alturaAgua = alturaReservatorio - reservatorio.milimetros;

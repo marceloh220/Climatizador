@@ -53,7 +53,7 @@
 #define pinLM35             A2        //pino de leitura do sensor de temperatura LM35
 
 #define pinUltrason          9        //pino trigger do sensor de nivel ultrassonico
-#define pinEcho            ICP        //pino de echo do sensor de nivel ultrassonico
+#define pinEcho              8        //pino de echo do sensor de nivel ultrassonico
 
 #define pinfimdeCurso       10        //fim de curso da movimentacao do direcionamento horizontal da ventilacao
 
@@ -61,7 +61,7 @@
 #define encoderB             7        //pino B do encoder para movimentacao horizontal da ventilacao
 #define encoderButton       11        //pino do botao tactil do encoder
 
-#define motorPA              2        //pino laranja do motor de passo
+#define motorPA              12       //pino laranja do motor de passo
 #define motorPB              3        //pino amarelo do motor de passo
 #define motorPC              4        //pino branco do motor de passo (eu acho)
 #define motorPD              5        //pino preto o motor de passo

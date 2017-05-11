@@ -37,6 +37,9 @@ void acionamentos() {
   uint8_t tecla = teclado.leitura();	//Verifica a tecla pressionada
   uint8_t elem = tamVet(mostra) - 1;	//verifica a quantidade de elementos no vetor mostra
 
+  if (tecla != 0)                     //Se alguma tecla pressionada
+    teste.set(acteclado);             //Indica acao do teclado
+
   if ( tecla == 1 ) {                 //Se pressionada tecla 1
     relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
     if (mostraPTR > 0)                //Se ponteiro mostrar nao estiver no primeiro elemento
@@ -50,6 +53,7 @@ void acionamentos() {
   }//fim teste tecla 2
 
   else if ( tecla == 3 ) {            //Se tecla 3 pressionada
+    mostraPTR = 1;
     relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
     controle.trocar(VELOCIDADE);      //Troca a velocidade da controle (desligado/1/2/3)
   }//fim teste tecla 3
@@ -60,6 +64,7 @@ void acionamentos() {
   }//fim teste tecla 4
 
   else if ( tecla == 5 ) {             //Se tecla 5 pressionada
+    mostraPTR = elem;
     if ( mostraPTR == elem)			      //Se menu estiver na ultima posicao
       relogio.ajuste();               //Avanca o posicionamento do cursor para ajuste de hora/data
   }//fim teste tecla 5

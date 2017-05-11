@@ -50,7 +50,6 @@
 #include "classes/temperatura.h"
 #include "classes/relogio.h"
 #include "classes/passo.h"
-//#include "classes/horizontal.h"
 #include "classes/encoder.h"
 
 /**************************************************************************************************************************
@@ -64,12 +63,12 @@ void mostraHora();
 void medirVolume();
 
 void acionamentos();
+void desligamento();
 
 void motorPasso();
-void capturaOVF();
-void capturaDescida();
-void capturaSubida();
 void resetWDT();
+void desligamentoP();
+void ligamentoP();
 
 void erro(uint8_t tipo);
 
@@ -80,7 +79,7 @@ void erro(uint8_t tipo);
 typedef void (*funcoes)();
 
 //vetor com funcoes
-funcoes mostra[] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
+funcoes volatile mostra[4] = {mostraTemperatura, mostraVelocidade, mostraNivel, mostraHora};
 
 //ponteiro para funcoes
 uint8_t mostraPTR = 0;
@@ -111,7 +110,7 @@ const uint8_t graus[8] PROGMEM =
 
 //Para temporizacoes
 typedef struct Time {
-  uint32_t ms2, ms10, ms60, ms500, s1;
+  uint32_t ms2, ms10, ms60, ms500, s1, s30, m1, m5;
   uint32_t testes;//para testes com tempo auxiliares
 } time_t;
 time_t temporizacao;
@@ -121,9 +120,7 @@ class Volume {
   public:
     float     milimetros, centimetros, metros;
     float     litros, centilitros, mililitros;
-    uint32_t  captura;
-    uint8_t   ovf;
-    uint8_t   test;
+    uint8_t   testes;
 };
 Volume reservatorio;
 
@@ -136,6 +133,8 @@ Register teste;
 #define horizontal 2
 #define manutencao 3
 #define desligou   4
+#define acteclado  5
+#define progOFF    6
 
 /**************************************************************************************************************************
                                       Inicializacao dos modulos do core Marcelino
@@ -143,11 +142,13 @@ Register teste;
 
 Digital digital;          //Controle dos pinos digital
 Timer0  timer;            //Temporizacoes com o timer 0
-Timer1  captura;          //Captura para leitura de largura de pulso do sensor de nivel com hardware do timer 1
-Serial  serial;    //Modulo Serial para comunicacao com computador
+Pulse   pulse;
+Serial  serial;           //Modulo Serial para comunicacao com computador
 Delay   delay;            //Um pequeno delay para o dispositivo HC-SR04 (sensor ultrassonico)
 WDT     wdt;              //Watch Dog Timer (WDT) para vigiar o MCU e evitar travamentos
 Timer2  motor;            //Timer 2 para temporizar o acionamento do motor de passo
+Sleep   sleep;            //Coloca o controlador em modo de baixo consumo
+External external;        //Interrupcoes externas para acionamentos e desacionamentos no modo sleep
 
 /**************************************************************************************************************************
                                               Instancias de Objetos
@@ -198,13 +199,17 @@ Encoder encoder(14, 15);
 //Funcao de configuracao do MCU
 void setup() {
 
+  //Liga o background do display
+  display.background(ON);
+
+  display.print("  Climatizador  ");
+  display.set(0,1);
+  display.print(" ENG. Eletrica  ");
+  
   //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
   //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   for (int i = 0; i < 8; i++)
     display.create(0, get_pgm(graus, i), i);
-
-  //Liga o background do display
-  display.background(ON);
 
   //configura os pinos do reles
   controle.configura(velocidade1, velocidade2, velocidade3, bombaDagua, direcaoVertical, livre1, livre2, pinSinalizacao);
@@ -212,13 +217,13 @@ void setup() {
   //Inicia com todos os reles desligado
   controle.parada();
 
-  digital.pullup(4, encoderA, encoderB, encoderButton, pinfimdeCurso);
+  digital.pullup(5, encoderA, encoderB, encoderButton, pinfimdeCurso, 2);
 
   //Inicia com a ventilacao fechada
   while (digital.read(pinfimdeCurso)) {
     passo.antihorario();
     delay.ms(4);
-    if (passo.passos() < -2500)
+    if (passo.passos() < -1600)
       erro(1);
   }
 
@@ -228,17 +233,23 @@ void setup() {
   motor.attach(OVF, motorPasso);
 
   wdt.config(INT_RESET);  //configura o watch dog timer (WDT) para resetar o MCU se ele travar e executa uma interrupcao antes de resetar
-  wdt.timeout(W_4S);      //configura o estouro do WDT para 4 segundos
+  wdt.timeout(W_8S);      //configura o estouro do WDT para 8 segundos
   wdt.attach(resetWDT);   //executa a funcao "resetWDT()" caso o WDT reinicie o MCU
   wdt.enable();           //habilita o WDT
+
+  external.attach(INT0, FALLING, desligamentoP);
+
+  delay.ms(3000);
 
 }//fim da funcao setup
 
 //Funcao para execucao do codigo em ciclo infinito.
 void loop() {
-
+  
+  wdt.clear();
+  
   //Tarefa realizada a cada 10 milisegundo
-  if ( ( timer.millis() - temporizacao.ms10 ) >= 10) {    //Testa se passou 10ms
+  if ( (timer.millis() - temporizacao.ms10) >= 10) {      //Testa se passou 10ms
 
     temperatura.atualiza();                               //Atualiza as leituras de temperatura
     acionamentos();                                       //Chama funcao de acoes de controle
@@ -252,7 +263,7 @@ void loop() {
   }//fim da tarefa de 10ms
 
   //Tarefa realizada a cada 60 milisegundo
-  if ( ( timer.millis() - temporizacao.ms60 ) >= 60) {    //Testa se passou 60ms
+  if ( (timer.millis() - temporizacao.ms60) >= 60) {      //Testa se passou 60ms
 
     teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclado
 
@@ -264,7 +275,7 @@ void loop() {
   }//fim da tarefa de 60ms
 
   //Tarefa realizada a cada 500 milisegundo
-  if ( ( timer.millis() - temporizacao.ms500 ) >= 500) {  //Testa se passou 500ms
+  if ( (timer.millis() - temporizacao.ms500) >= 500) {    //Testa se passou 500ms
 
     medirVolume();                                        //Atualiza a leitura de volume do reservatorio
     relogio.sinalizar();                                  //Sinaliza ajuste do relogio com blink da configuracao selecionada
@@ -291,12 +302,60 @@ void loop() {
   }//fim da tarefa de 500ms
 
   //Tarefa realizada a cada 1 segundo
-  if ( ( timer.millis() - temporizacao.s1 ) >= 1000) {    //Testa se passou 1 segundo
+  if ( (timer.millis() - temporizacao.s1) >= 1000) {      //Testa se passou 1 segundo
 
     controle.sinalizar();                                 //Sinaliza nivel de agua, se reservatorio estiver com nivel alto desliga sinalizacao, se nao, pisca a sinalizacao
     temporizacao.s1 = timer.millis();                     //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
+
+  //Tarefa realizada a cada 30 segundo
+  if ( (timer.millis() - temporizacao.s30) >= 30000) {    //Testa se passou 30 segundo
+
+    relogio.posicao(0);
+    mostraPTR = 0;
+
+    temporizacao.s30 = timer.millis();                    //Salva o tempo atual para nova tarefa apos 30s
+
+  }//fim da tarefa de 30s
+
+  //Tarefa realizada a cada 30 segundo
+  if ( (timer.millis() - temporizacao.m1) >= 60000) {    //Testa se passou 1min
+
+    relogio.posicao(0);
+    mostraPTR = 0;
+    display.background(OFF);
+
+    temporizacao.s30 = timer.millis();                    //Salva o tempo atual para nova tarefa apos 1min
+
+  }//fim da tarefa de 1min
+
+  //Tarefa realizada a cada 5min
+  if ( (timer.millis() - temporizacao.m5) >= 300000) {    //Testa se passou 5min
+
+    teste.clear(progOFF);
+
+    wdt.clear();
+
+    if (controle.velocidade() == 0)
+      desligamento();
+
+    temporizacao.m5 = timer.millis();                    //Salva o tempo atual para nova tarefa apos 5min
+
+  }//fim da tarefa de 5min
+
+  //se aconteceu alguma acao no teclado ou sistema em modo manutencao
+  if (teste.ifset(acteclado) || teste.ifset(manutencao)) {
+    teste.clear(acteclado);
+    display.background(ON);
+    temporizacao.s30 = timer.millis();
+    temporizacao.m1 = timer.millis();
+    temporizacao.m5 = timer.millis();
+  }
+
+  if (teste.ifset(progOFF)) {
+    desligamento();
+  }
 
   wdt.clear();                                            //Limpa o watch dog timer (WDT) para evitar reset
 
@@ -315,6 +374,7 @@ void loop() {
 #include "mostraNivel.h"
 #include "mostraHora.h"
 #include "acionamentos.h"
+#include "desligamento.h"
 #include "medirVolume.h"
 #include "interrupcoes.h"
 #include "erros.h"
