@@ -35,6 +35,7 @@ void erro(uint8_t tipo) {
 
   controle.parada();
   passo.parada();
+  passo.desligar();
 
   display.set(0, 0);
   display.print("Erro! Problema: ");
