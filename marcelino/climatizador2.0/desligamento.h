@@ -6,7 +6,7 @@ void desligamento() {
   DDRB |= (1 << 5);
   PORTB |= (1 << 5);
 
-
+  teste.reg(0);
 
   controle.parada();
   display.background(OFF);

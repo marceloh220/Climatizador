@@ -239,7 +239,7 @@ void setup() {
 
   external.attach(INT0, FALLING, desligamentoP);
 
-  delay.ms(3000);
+  delay.ms(2000);
 
   medirVolume();                                        //Atualiza a leitura de volume do reservatorio
 
