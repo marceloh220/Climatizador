@@ -36,9 +36,102 @@
 void motorPasso()
 {
 
+  //verifica a velocidade da ventilacao principal
   uint8_t velocidade = controle.velocidade();
 
-  // === se ventilacao ligada ===
+  // === Monitor do ENCODER ===
+
+  //vetor com estados para leitura do encoder em modo de quadratura
+  static int8_t estados[] =
+  {
+    0, -1,  1,  0,
+    1,  0,  0, -1,
+    -1,  0,  0,  1,
+    0,  1, -1,  0
+  };//estados do encoder
+
+  //guarda o estado anterior para verificar o sentido de giro do encoder
+  static int16_t anterior;
+
+  //realiza a leitura dos pinos de entrada, digitalRead tem muito overhead tive que fazer leitura direto do port pra nao ficar travando a movimentacao
+  uint8_t entradas = PINB;          //le o port PINB
+  entradas &= bv(PB2) | bv(PB3);    //isola os bits PB2 e PB3 (D10 e D11)
+
+  uint8_t atual = entradas >> 2;    //acomoda os bits lidos para uma variave que verifica se o encoder esta avancando ou decrementando
+
+  //se o ventilador estiver ligado
+  if (velocidade > 0) {
+
+    //enqanto posicao em um valor minimo e um valor maximo
+    if ( posicaoEncoder >= 62 && posicaoEncoder <= 290) {
+
+      //se detectado um novo estado
+      if (anterior != atual) {
+
+        //salva em uma variavel intermediaria o valor lido,
+        //em cada quadratura (um tack do encoder) esta variavel e incrementada ou decrementada 4 vezes
+        posicaoEncoder += estados[atual | (anterior << 2)];
+
+        //se chegou ao final da quadratura
+        if (atual == 3) {
+
+          //salva o valor de quadratura com uma escala para passar o giro do encoder para o motor de passo
+          posicaoPasso = posicaoEncoder >> 2;
+          posicaoPasso *= encoderEscala;
+
+          //quando detecta um tack do encoder vai limpar algumas flags de testes
+          teste.clear(automatic);     //tira motor de passo do modo automatico
+          teste.clear(sinaliza);      //desliga a sinalizacao de modo automatico
+          teste.clear(manutencao);    //tira o equipamento do modo manutencao
+
+        }//fim do teste de fim de quadratura
+
+        //salva o valor atual no anterior para a proxima verificacao
+        anterior = atual;
+
+      }//fim do teste de novo estado
+
+    }//fim do teste de limites superior e inferior "if ( posicaoEncoder >= 62 && posicaoEncoder <= 290)"
+
+    //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
+    if (posicaoEncoder > 290)//valor menor pois e aplicado uma escala
+      posicaoEncoder = 290;
+    if (posicaoEncoder < 62)//valor nao chega a zero quando a ventilacao esta ligada para as paletas ficarem meio abertas
+      posicaoEncoder = 62;
+
+  }//fim velocidade > 0
+
+  else if (velocidade == 0) {
+
+    if ( posicaoEncoder >= 3 && posicaoEncoder <= 290) {
+
+      if (anterior != atual) {
+        posicaoEncoder += estados[atual | (anterior << 2)];
+
+        if (atual == 3) {
+          posicaoPasso = posicaoEncoder >> 2;
+          posicaoPasso *= encoderEscala;
+          teste.clear(automatic);
+          teste.set(manutencao);
+          teste.clear(sinaliza);
+        }
+
+        anterior = atual;
+
+      }
+
+    }
+
+    if (posicaoEncoder > 290)
+      posicaoEncoder = 290;
+    if (posicaoEncoder < 3)
+      posicaoEncoder = 3;
+
+  }//fim velocidade == 0
+
+  // === Fim do monitor de encoder ===
+
+  // === Motor de passo ===
 
   //se ventilacao ligada
   if (velocidade > 0) {
@@ -49,18 +142,19 @@ void motorPasso()
     //se em modo automatico
     if (teste.ifset(automatic)) {
       passo.automatico(300, 1400);
-      posicaoEncoder = passo.passos();
     }//movimenta paletas da posicao 300 ate 1400 automaticamente
 
     //se posicionamento manual
     else {
-      if (passo.passos() < 300)
-        posicaoEncoder = 300;
-      passo.posicao(posicaoEncoder);
+      if (passo.passos() < 300) {
+        posicaoPasso = 300;
+        posicaoEncoder = 62;
+      }
+      passo.posicao(posicaoPasso);
     }
     //posiciona paletas na posicao do encoder
 
-  }//fim do teste de motor de ventilacao ligado
+  }//fim do teste de ventilacao ligado
 
 
   // == se em modo de manutencao ===
@@ -68,7 +162,7 @@ void motorPasso()
   //se movimentado paletas com ventilacao desligada (modo de manutencao)
   else if (teste.ifset(manutencao)) {
     //posiciona paletas
-    passo.posicao(posicaoEncoder);
+    passo.posicao(posicaoPasso);
   }//fim do teste de modo de manutencao
 
   // === se ventilacao desligada e fora do modo de manutencao ===
@@ -80,39 +174,14 @@ void motorPasso()
     else {
       passo.parada();
       passo.passos(0);
-      posicaoEncoder = 0;
+      posicaoEncoder = 3;
+      posicaoPasso = 0;
     }
   }
 
-  // === monitoramento do encoder ===
 
-  // === simula encoder com teclas ===
-  //se girando em um sentido incrementa a posicao ate 1500
-  if (digital.ifclear(encoderA)) {
-    teste.clear(automatic);
-    teste.clear(sinaliza);
-    if (posicaoEncoder < 1500)
-      posicaoEncoder++;
-    if (velocidade == 0)
-      teste.set(manutencao);
-  }
-  //se girando em outro sentido decrementa a posicao ate 300 com ventilacao ligada e ate 0 com ventilacao desligada
-  if (digital.ifclear(encoderB)) {
-    teste.clear(automatic);
-    teste.clear(sinaliza);
-    if (velocidade > 0) {
-      if (posicaoEncoder > 300)
-        posicaoEncoder--;
-    }
-    else {
-      teste.set(manutencao);
-      if (posicaoEncoder > 0)
-        posicaoEncoder--;
-    }
-  }
-  // === fim da simulacao do encoder ===
 
-}
+}//fim da interrupcao motorPasso
 
 
 // === Captura do sensor de nivel do reservatorio ===

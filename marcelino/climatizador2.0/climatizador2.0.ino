@@ -1,4 +1,4 @@
-/**************************************************************************************************************************
+  /**************************************************************************************************************************
 
    Autor: Marcelo Henrique Moraes
    E-mail: marceloh220@hotmail.com
@@ -50,7 +50,7 @@
 #include "classes/temperatura.h"
 #include "classes/relogio.h"
 #include "classes/passo.h"
-#include "classes/encoder.h"
+//#include "classes/encoder.h"
 
 /**************************************************************************************************************************
                                                Prototipo de funcoes auxiliares
@@ -65,6 +65,7 @@ void medirVolume();
 void acionamentos();
 void desligamento();
 
+void encoderUpdate();
 void motorPasso();
 void resetWDT();
 void desligamentoP();
@@ -124,7 +125,8 @@ class Volume {
 };
 Volume reservatorio;
 
-uint16_t posicaoEncoder = 0;
+int16_t posicaoEncoder;
+int16_t posicaoPasso;
 
 Register teste;
 
@@ -189,8 +191,6 @@ Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO);
 
 */
 
-Encoder encoder(14, 15);
-
 /**************************************************************************************************************************
                                                    Funcoes principais
 ***************************************************************************************************************************/
@@ -217,7 +217,7 @@ void setup() {
   //Inicia com todos os reles desligado
   controle.parada();
 
-  digital.pullup(5, encoderA, encoderB, encoderButton, pinfimdeCurso, 2);
+  digital.pullup(5, encoderA, encoderB, encoderButton, pinfimdeCurso, pinPOWER);
 
   //Inicia com a ventilacao fechada
   while (digital.read(pinfimdeCurso)) {
@@ -248,6 +248,9 @@ void setup() {
 //Funcao para execucao do codigo em ciclo infinito.
 void loop() {
 
+  serial.print("EncoderEXT: ");
+  serial.println(posicaoEncoder);
+
   //Tarefa realizada a cada 10 milisegundo
   if ( (timer.millis() - temporizacao.ms10) >= 10) {      //Testa se passou 10ms
 
@@ -255,8 +258,8 @@ void loop() {
     acionamentos();                                       //Chama funcao de acoes de controle
     mostra[mostraPTR]();                                  //Chama funcao alocada na posicao do ponteiro mostra
 
-    serial.print("PASSO: ");
-    serial.println(passo.passos());                       //Teste de quantos passos foram dados pelo motor de passo
+    //serial.print("PASSO: ");
+    //serial.println(passo.passos());                       //Teste de quantos passos foram dados pelo motor de passo
 
     temporizacao.ms10 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 10ms
 
@@ -266,9 +269,6 @@ void loop() {
   if ( (timer.millis() - temporizacao.ms60) >= 60) {      //Testa se passou 60ms
 
     teclado.liberar();                                    //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclado
-
-    serial.print("Posicao do encoder: ");
-    serial.println(posicaoEncoder);
 
     temporizacao.ms60 = timer.millis();                   //Salva o tempo atual para nova tarefa apos 60ms
 
