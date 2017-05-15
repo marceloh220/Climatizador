@@ -31,15 +31,18 @@
 
 ***************************************************************************************************************************/
 
+//se foi detectado algum erro apresenta o erro no display
 void erro(uint8_t tipo) {
 
-  controle.parada();
-  passo.parada();
+  controle.parada();  //para todos atuadores
+  passo.parada();     //para o motor de passo
 
+  //indica que existe um problema
   display.set(0, 0);
   display.print("Erro! Problema: ");
   display.set(0, 1);
 
+  //alguns problemas previstos
   switch (tipo) {
 
     case 1:
@@ -58,14 +61,15 @@ void erro(uint8_t tipo) {
       display.print("Motor de Passo  ");
       break;
 
+    //se aconteceu um erro imprevisto
     default:
       display.print("Desconhecido    ");
       break;
-  }
+  }//fim da selecao de erros
 
+  //mantem a mensagem por um tepo na tela
   delay.ms(5000);
 
-}
-
+}//fim da funcao de erros
 
 #endif

@@ -32,7 +32,7 @@
 ***************************************************************************************************************************/
 
 // === Controle do motor de passo ===
-
+//interrupcao de overflow do timer 2
 void motorPasso()
 {
 
@@ -51,12 +51,11 @@ void motorPasso()
   };//estados do encoder
 
   //guarda o estado anterior para verificar o sentido de giro do encoder
-  static int16_t anterior;
+  static int16_t anterior = 3;
 
-  //realiza a leitura dos pinos de entrada, digitalRead tem muito overhead tive que fazer leitura direto do port pra nao ficar travando a movimentacao
+  //realiza a leitura dos pinos de entrada, digitalRead tem muito overhead, tive que fazer leitura direto do port pra nao ficar travando a movimentacao
   uint8_t entradas = PINB;          //le o port PINB
   entradas &= bv(PB2) | bv(PB3);    //isola os bits PB2 e PB3 (D10 e D11)
-
   uint8_t atual = entradas >> 2;    //acomoda os bits lidos para uma variave que verifica se o encoder esta avancando ou decrementando
 
   //se o ventilador estiver ligado
@@ -80,9 +79,9 @@ void motorPasso()
           posicaoPasso *= encoderEscala;
 
           //quando detecta um tack do encoder vai limpar algumas flags de testes
-          teste.clear(automatic);     //tira motor de passo do modo automatico
-          teste.clear(sinaliza);      //desliga a sinalizacao de modo automatico
-          teste.clear(manutencao);    //tira o equipamento do modo manutencao
+          teste.clear(automatic);   //tira motor de passo do modo automatico
+          teste.clear(sinaliza);    //desliga a sinalizacao de modo automatico
+          teste.clear(manutencao);  //tira o equipamento do modo manutencao
 
         }//fim do teste de fim de quadratura
 
@@ -101,30 +100,44 @@ void motorPasso()
 
   }//fim velocidade > 0
 
+  //quando a ventilacao esta desligada
   else if (velocidade == 0) {
 
+    //enquanto posicao em um valor minimo e maximo
     if ( posicaoEncoder >= 3 && posicaoEncoder <= 290) {
 
+      //se detectado um novo estado
       if (anterior != atual) {
+
+        //salva em uma variavel intermediaria o valor lido,
+        //em cada quadratura (um tack do encoder) esta variavel e incrementada ou decrementada 4 vezes
         posicaoEncoder += estados[atual | (anterior << 2)];
 
+        //se chegou ao final da quadratura
         if (atual == 3) {
+
+          //salva o valor de quadratura com uma escala para passar o giro do encoder para o motor de passo
           posicaoPasso = posicaoEncoder >> 2;
           posicaoPasso *= encoderEscala;
-          teste.clear(automatic);
-          teste.set(manutencao);
-          teste.clear(sinaliza);
-        }
 
+          //quando detecta um tack do encoder vai limpar algumas flags de testes
+          teste.clear(automatic);  //tira motor de passo do modo automatico
+          teste.clear(sinaliza);   //desliga a sinalizacao de modo automatico
+          teste.set(manutencao);   //coloca o equipamento do modo manutencao
+
+        }//fim do teste de fim de quadratura
+
+        //salva o valor atual no anterior para a proxima verificacao
         anterior = atual;
 
-      }
+      }//fim do teste de novo estado
 
-    }
+    }//fim do teste de limites superior e inferior "if ( posicaoEncoder >= 3 && posicaoEncoder <= 290)"
 
-    if (posicaoEncoder > 290)
+    //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
+    if (posicaoEncoder > 290)  //valor menor pois e aplicado uma escala
       posicaoEncoder = 290;
-    if (posicaoEncoder < 3)
+    if (posicaoEncoder < 3)    //com ventilacao desligada o posicionamento pode chegar a 3 pontos de quadratura, o que corresponde a posicao 0
       posicaoEncoder = 3;
 
   }//fim velocidade == 0
@@ -146,13 +159,16 @@ void motorPasso()
 
     //se posicionamento manual
     else {
+
+      //nao deixa palhetas fechar completamente com a ventilacao ligada
       if (passo.passos() < 300) {
         posicaoPasso = 300;
         posicaoEncoder = 62;
       }
+      
       passo.posicao(posicaoPasso);
-    }
-    //posiciona paletas na posicao do encoder
+      
+    }//posiciona paletas na posicao do encoder
 
   }//fim do teste de ventilacao ligado
 
@@ -169,50 +185,59 @@ void motorPasso()
 
   //se motor desligado e nao esta em modo de manutencao
   else {
+
+    //se nao chegou no final do curso
     if (digital.ifset(pinfimdeCurso))
       passo.antihorario();//fecha ventilacao
+
+    //quando chega no final do curso
     else {
       passo.parada();
       passo.passos(0);
       posicaoEncoder = 3;
       posicaoPasso = 0;
-    }
-  }
-
+    }//fim do final do curso
+    
+  }//fim do teste de ventilacao desligada e fora do modo de manutencao
 
 
 }//fim da interrupcao motorPasso
 
 
 // === Captura do sensor de nivel do reservatorio ===
-
+//futuramente o sensor de nivel sera medido com uma captura do timer 1
 
 // === WDT resetou o MCU ===
 
 void resetWDT()
 {
-  erro(3);
+  erro(erroWDT);  //sinaliza que CPU esta travando
 }
 
 
 // === Sleep coloca para dormir ou acorda o sistema ===
 
-void desligamentoP() {
+//interrupcao para desligamento
+void desligamentoProgramado()
+{
 
-  teste.set(progOFF);
-  external.detachINT(INT0);
-  temporizacao.ms500 = timer.millis();
-
-}
-
-void ligamentoP() {
-
-  sleep.disable(SLEEP);
-  wdt_enable(WDTO_15MS);
-  for (;;);
+  teste.set(progOFF);        //indica um desligamento programado
+  external.detachINT(INT0);  //desativa a interrupcao INT0
+  
+  temporizacao.ms500 = timer.millis();  //faz com que o desligamento programado acontece nos proximos 500ms (debounce)
 
 }
 
+//interrupcao para ligamento
+void ligamentoProgramado()
+{
 
+  sleep.disable(SLEEP);  //acorda a cpu
+  wdt.config(RESET);     //configura o watch dog timer (WDT) para resetar o MCU
+  wdt.timeout(W_16MS);   //configura o estouro do WDT no menor tempo possivel
+  wdt.enable();          //habilita o WDT
+  for (;;);              //fica enrolando ate a cpu resetar
+
+}
 
 #endif

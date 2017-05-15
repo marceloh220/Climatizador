@@ -41,22 +41,15 @@ void medirVolume() {
   delay.us(10);
   digital.write(pinUltrason, OFF);
 
-  uint32_t pulso = pulse.in(pinEcho,HIGH, 30);
+  uint32_t pulso = pulse.in(pinEcho,HIGH, 30);  //realiza a leitura da largura do pulso largura em ms
 
   /*
      Calculo das distancias do sensor ultrassonico
-
-     Distancia = Largura do Pulso * Velocidade do Som / 2
-
-     Largura do Pulso = 1/F_CPU * prescale * captura
-
-     Distancia = 1/F_CPU * prescale * captura * Velocidade do Som / 2
-     Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
-     Distancia = captura * 1.06340625e-5 [m]
-
+     
+     Distancia[m] = Largura do Pulso[s] * Velocidade do Som[m/s] / 2
   */
 
-  reservatorio.milimetros = pulso * 0.34 / 2.0;
+  reservatorio.milimetros = pulso * 0.17145;
   //serial.print("Largura de pulso: ");
   //serial.println(reservatorio.milimetros);
 
@@ -67,7 +60,7 @@ void medirVolume() {
     reservatorio.testes = 0;
  
   if (reservatorio.testes > 5)
-    erro(2);
+    erro(erroSensorNivel);
 
   //cm = mm * 10e-2
   reservatorio.centimetros = reservatorio.milimetros * 1e-2;

@@ -7,12 +7,15 @@ class Encoder: private Digital {
 
 private:
 
+	//pinos
 	uint8_t pinA;
 	uint8_t pinB;
 	uint8_t pinButton;
 
-	int8_t anterior;
-	int pos;
+	//
+	int16_t anterior;
+	int32_t posTack;
+	int32_t posEncoder;
 
 	int8_t estados[16] = {
 							0,-1,1,0,
@@ -36,11 +39,11 @@ private:
 
 public:
 
-	Encoder() {;;}
 	Encoder(uint8_t a, uint8_t b, uint8_t button) { configura(a,b,button); }
 	Encoder(uint8_t a, uint8_t b) { configura(a,b); }
 
-	inline uint8_t encoder(uint16_t escala = 1) {
+	//realiza a leitura da quadratura e retorna a quantidade de tacks
+	int32_t encoder(uint16_t escala = 1) {
 		
 		uint8_t a = Digital::read(this->pinA);
 		uint8_t b = Digital::read(this->pinB);
@@ -49,19 +52,32 @@ public:
 
 		if(this->anterior != atual) {
 			
+			this->posEncoder += this->estados[atual | (this->anterior << 2)];
 		
-		this->anterior <<= 2;
-		this->anterior <<= 1;
-		this->anterior &= 0x0F;
-		return this->estados[this->anterior]*escala;
+			if (atual == 3) {
+				this->posTack = this->posEncoder >> 2;
+				this->posTack *= escala;
+			}
+		}
+		
+		return posTack;
+		
+	}//fim do metodo encoder
+
+	//retorna a posicao
+	inline uint32_t posicao() { return this->posTack; }
+
+	//carrega novas posicoes
+	void posicao(uint32_t pos) {
+		this->posEncoder = ((pos << 2) | (this->posEncoder & 0x03L));
+		this->posTack = pos;
 	}
 
-	inline uint8_t botao() {
-		return !Digital::read(pinButton);
-	}
+	//le o botao do encoder
+	inline uint8_t botao() { return !Digital::read(pinButton); }
 
 	
-};
+};//fim da classe encoder
 
 
 #endif

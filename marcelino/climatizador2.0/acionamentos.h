@@ -34,49 +34,49 @@
 //Funcao que realiza a acao da tecla pressionada
 void acionamentos() {
 
-  uint8_t tecla = teclado.leitura();	//Verifica a tecla pressionada
-  uint8_t elem = tamVet(mostra) - 1;	//verifica a quantidade de elementos no vetor mostra
+  uint8_t tecla = teclado.leitura();  //Verifica a tecla pressionada
+  uint8_t elem = tamVet(mostra) - 1;	//verifica a quantidade de elementos no vetor
 
-  if (tecla != 0)                     //Se alguma tecla pressionada
-    teste.set(acteclado);             //Indica acao do teclado
+  if (tecla != 0)         //Se alguma tecla pressionada
+    teste.set(acteclado); //Indica acao do teclado
 
-  if ( tecla == 1 ) {                 //Se pressionada tecla 1
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    if (mostraPTR > 0)                //Se ponteiro mostrar nao estiver no primeiro elemento
-      mostraPTR--;                    //Decrementa ponteiro mostrar
+  if ( tecla == 1 ) {   //Se pressionada tecla 1
+    relogio.posicao(0); //Reinicia o posicionamento de ajuste de hora
+    if (mostraPTR > 0)  //Se ponteiro mostrar nao estiver no primeiro elemento
+      mostraPTR--;      //Decrementa ponteiro mostrar
   }//fim teste tecla 1
 
-  else if ( tecla == 2 ) {            //Se pressionada tecla 2
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    if (mostraPTR < elem) 		  	    //Se ponteiro mostrar nao estiver no ultimo elemento
-      mostraPTR++;                    //Incrementa ponteiro mostrar
+  else if ( tecla == 2 ) {  //Se pressionada tecla 2
+    relogio.posicao(0);     //Reinicia o posicionamento de ajuste de hora
+    if (mostraPTR < elem) 	//Se ponteiro mostrar nao estiver no ultimo elemento
+      mostraPTR++;          //Incrementa ponteiro mostrar
   }//fim teste tecla 2
 
-  else if ( tecla == 3 ) {            //Se tecla 3 pressionada
-    mostraPTR = 1;
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    controle.trocar(VELOCIDADE);      //Troca a velocidade da controle (desligado/1/2/3)
+  else if ( tecla == 3 ) {        //Se tecla 3 pressionada
+    mostraPTR = 1;                //Posiciona o menu para apresentar o estado das velocidades
+    relogio.posicao(0);           //Reinicia o posicionamento de ajuste de hora
+    controle.trocar(VELOCIDADE);  //Troca a velocidade da controle (desligado/1/2/3)
   }//fim teste tecla 3
 
-  else if ( tecla == 4 ) {            //Se tecla 4 pressionada
-    relogio.posicao(0);               //Reinicia o posicionamento de ajuste de hora
-    controle.trocar(VERTICAL);	  	  //Liga ou desliga a movimentacao das paletas verticais de direcionamento de ar
+  else if ( tecla == 4 ) {      //Se tecla 4 pressionada
+    relogio.posicao(0);         //Reinicia o posicionamento de ajuste de hora
+    controle.trocar(VERTICAL);  //Liga ou desliga a movimentacao das paletas verticais de direcionamento de ar
   }//fim teste tecla 4
 
-  else if ( tecla == 5 ) {             //Se tecla 5 pressionada
-    mostraPTR = elem;
-    if ( mostraPTR == elem)			      //Se menu estiver na ultima posicao
-      relogio.ajuste();               //Avanca o posicionamento do cursor para ajuste de hora/data
+  else if ( tecla == 5 ) {  //Se tecla 5 pressionada
+    mostraPTR = elem;       //Posiciona o menu para apresentar as horas com configuracoes
+    if ( mostraPTR == elem) //Se menu estiver na ultima posicao
+      relogio.ajuste();     //Avanca o posicionamento do cursor para ajuste de hora/data
   }//fim teste tecla 5
 
-  else if ( tecla == 6 ) {            //Se tecla 6 pressionada
-    if ( relogio.posicao() )			    //Se relogio estiver em posicao de ajuste
-      relogio.decrementa();           //Decrementa a hora/data na posicao
+  else if ( tecla == 6 ) {    //Se tecla 6 pressionada
+    if ( relogio.posicao() )  //Se relogio estiver em posicao de ajuste
+      relogio.decrementa();   //Decrementa a hora/data na posicao
   }//fim teste tecla 6
 
-  else if ( tecla == 7) {             //Se tecla 7 pressionada
-    if ( relogio.posicao() )			    //Se relogio estiver em posicao de ajuste
-      relogio.incrementa();           //incrementa a hora/data na posicao
+  else if ( tecla == 7) {     //Se tecla 7 pressionada
+    if ( relogio.posicao() )  //Se relogio estiver em posicao de ajuste
+      relogio.incrementa();   //incrementa a hora/data na posicao
   }//fim teste tecla 7
 
 }//fim da funcao acao

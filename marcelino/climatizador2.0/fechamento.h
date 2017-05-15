@@ -1,5 +1,5 @@
-#ifndef _MOSTRA_VELOCIDADE_H
-#define _MOSTRA_VELOCIDADE_H
+#ifndef _FECHAMENTO_H
+#define _FECHAMENTO_H
 
 /**************************************************************************************************************************
 
@@ -31,32 +31,26 @@
 
 ***************************************************************************************************************************/
 
-//Funcao que mostra no display a velocidade
-void mostraVelocidade() {
+void fechamento() {
 
-  display.set(0, 0);						          //Posiciona cursor na coluna 0 / linha 0
-  display.print("Ventilacao");
-  
-  if (teste.ifset(automatic))
-    display.print("  auto");
-  else if (teste.ifset(manutencao))
-    display.print("  mntc");
-  else
-    display.print("      ");
+  //enquanto a chave fim de curso nao for fechada
+  while (digital.read(pinfimdeCurso))
+  {
+    passo.antihorario();  //gira o motor de passo no sentido antihorario para fechar a ventilacao
+    delay.ms(3);          //aguarda um tempo para o posicionamento do motor durante a movimentacao
     
-  uint8_t vel = controle.velocidade();	  //Verifica a velocidade
+    wdt.reset();  //reseta o wdt para evitar reinicializacoes
 
-  display.set(0, 1);
+    if (passo.passos() < -1600)  //se esta demorando muito para fechar
+      erro(erroHorizontal);      //avisa sobre o erro
 
-  if (vel == 0)
-    display.print("Desligada       ");
-  else if (vel == 1)
-    display.print("Baixa           ");
-  else if (vel == 2)
-    display.print("Media           ");
-  else if (vel == 3)
-    display.print("Alta            ");
+  }//fim do fechamento da ventilacao
 
-}//fim da funcao mostraVelocidade
+  passo.passos(0);     //seta o sistema com o numero de passos fechado
+  passo.parada();      //para o motor de passo apos concluir o fechamento
+  posicaoPasso = 0;    //zera posicao do motor de passo
+  posicaoEncoder = 3;  //zera a posicao do encoder
+
+}
 
 #endif

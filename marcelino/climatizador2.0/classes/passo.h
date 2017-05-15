@@ -43,14 +43,14 @@
 #define ANODO	2
 #endif
 
-//Uso do motor de passo com movimentacao direta
-#ifndef DIRETO
-#define DIRETO	1
-#endif
-
 //Uso do motor de passo com movimentacao inversa
 #ifndef INVERSO
 #define INVERSO	1
+#endif
+
+//Uso do motor de passo com movimentacao direta
+#ifndef DIRETO
+#define DIRETO	2
 #endif
 
 class Passo {
@@ -89,9 +89,6 @@ private:
 		
 		this->_modo = modo;
 
-		for(int i = 0; i < 4; i++)
-				*this->ddr[i] |= this->bit[i];
-
 		if(modo == CATODO) {
 			for(int i = 0; i < 4; i++)
 				*this->port[i] &= ~this->bit[i];
@@ -100,8 +97,11 @@ private:
 			for(int i = 0; i < 4; i++)
 				*this->port[i] |= this->bit[i];
 		}
+		
+		for(int i = 0; i < 4; i++)
+				*this->ddr[i] |= this->bit[i];
 				
-	}
+	}//fim do metodo configura
 	
 public:
 
@@ -127,6 +127,18 @@ public:
 		}
 			
 	}//fim do metodo parada
+
+	//coloca saidas em alta impedancia
+	void desligar() {
+		for(int i = 0; i < 4; i++)
+			*this->ddr[i] &= ~this->bit[i];
+	}//fim do metodo desliga
+
+	//tira as saidas da alta impedancia
+	void ligar() {
+		for(int i = 0; i < 4; i++)
+			*this->ddr[i] |= this->bit[i];
+	}//fim do metodo ligar
 
 	//gira motor no sentido horario
 	inline void horario()
@@ -233,16 +245,6 @@ public:
 				this->antihorario();
 			else
 				this->parada();
-	}
-
-	void desligar() {
-		for(int i = 0; i < 4; i++)
-			*this->ddr[i] &= ~this->bit[i];
-	}
-
-	void ligar() {
-		for(int i = 0; i < 4; i++)
-			*this->ddr[i] |= this->bit[i];
 	}
 		
 };
