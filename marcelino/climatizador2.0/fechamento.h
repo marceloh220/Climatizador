@@ -41,7 +41,7 @@ void fechamento() {
     
     wdt.reset();  //reseta o wdt para evitar reinicializacoes
 
-    if (passo.passos() < -1600)  //se esta demorando muito para fechar
+    if (passo.passos() < -3600)  //se esta demorando muito para fechar
       erro(erroHorizontal);      //avisa sobre o erro
 
   }//fim do fechamento da ventilacao
