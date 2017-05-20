@@ -41,15 +41,6 @@ void motorPasso()
 
   // === Monitor do ENCODER ===
 
-  //vetor com estados para leitura do encoder em modo de quadratura
-  static int8_t estados[] =
-  {
-    0, -1,  1,  0,
-    1,  0,  0, -1,
-   -1,  0,  0,  1,
-    0,  1, -1,  0
-  };//estados do encoder
-
   //guarda o estado anterior para verificar o sentido de giro do encoder
   static int16_t anterior = 3;
 
@@ -62,21 +53,20 @@ void motorPasso()
   if (velocidade > 0) {
 
     //enqanto posicao em um valor minimo e um valor maximo
-    if ( posicaoEncoder >= 62 && posicaoEncoder <= 290) {
+    if ( encoder.limites(0,1440) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
 
         //salva em uma variavel intermediaria o valor lido,
         //em cada quadratura (um tack do encoder) esta variavel e incrementada ou decrementada 4 vezes
-        posicaoEncoder += estados[atual | (anterior << 2)];
+        encoder.encoder(atual | (anterior << 2));
 
         //se chegou ao final da quadratura
         if (atual == 3) {
 
-          //salva o valor de quadratura com uma escala para passar o giro do encoder para o motor de passo
-          posicaoPasso = posicaoEncoder >> 2;
-          posicaoPasso *= encoderEscala;
+          //salva o valor de quadratura
+          encoder.atualiza();
 
           //quando detecta um tack do encoder vai limpar algumas flags de testes
           teste.clear(automatic);   //tira motor de passo do modo automatico
@@ -90,13 +80,13 @@ void motorPasso()
 
       }//fim do teste de novo estado
 
-    }//fim do teste de limites superior e inferior "if ( posicaoEncoder >= 62 && posicaoEncoder <= 290)"
+    }//fim do teste de limites
 
     //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
-    if (posicaoEncoder > 290)//valor menor pois e aplicado uma escala
-      posicaoEncoder = 290;
-    if (posicaoEncoder < 62)//valor nao chega a zero quando a ventilacao esta ligada para as paletas ficarem meio abertas
-      posicaoEncoder = 62;
+    if (encoder.posicao() > 1440)
+      encoder.posicao(1440);
+    if (encoder.posicao() < 300)//valor nao chega a zero quando a ventilacao esta ligada para as paletas ficarem meio abertas
+      encoder.posicao(300);
 
   }//fim velocidade > 0
 
@@ -104,21 +94,20 @@ void motorPasso()
   else if (velocidade == 0) {
 
     //enquanto posicao em um valor minimo e maximo
-    if ( posicaoEncoder >= 3 && posicaoEncoder <= 290) {
+    if ( encoder.limites(0,1440) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
 
         //salva em uma variavel intermediaria o valor lido,
         //em cada quadratura (um tack do encoder) esta variavel e incrementada ou decrementada 4 vezes
-        posicaoEncoder += estados[atual | (anterior << 2)];
+        encoder.encoder(atual | (anterior << 2));
 
         //se chegou ao final da quadratura
         if (atual == 3) {
 
-          //salva o valor de quadratura com uma escala para passar o giro do encoder para o motor de passo
-          posicaoPasso = posicaoEncoder >> 2;
-          posicaoPasso *= encoderEscala;
+          //salva o valor de quadratura
+          encoder.atualiza();
 
           //quando detecta um tack do encoder vai limpar algumas flags de testes
           teste.clear(automatic);  //tira motor de passo do modo automatico
@@ -132,13 +121,13 @@ void motorPasso()
 
       }//fim do teste de novo estado
 
-    }//fim do teste de limites superior e inferior "if ( posicaoEncoder >= 3 && posicaoEncoder <= 290)"
+    }//fim do teste de limites
 
     //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
-    if (posicaoEncoder > 290)  //valor menor pois e aplicado uma escala
-      posicaoEncoder = 290;
-    if (posicaoEncoder < 3)    //com ventilacao desligada o posicionamento pode chegar a 3 pontos de quadratura, o que corresponde a posicao 0
-      posicaoEncoder = 3;
+    if (encoder.posicao() > 1440)
+      encoder.posicao(1440);
+    if (encoder.posicao() < 0)    //com ventilacao desligada o posicionamento pode chegar a 0
+      encoder.posicao(0);
 
   }//fim velocidade == 0
 
@@ -155,6 +144,7 @@ void motorPasso()
     //se em modo automatico
     if (teste.ifset(automatic)) {
       passo.automatico(300, 1400);
+      encoder.posicao(passo.passos());
     }//movimenta paletas da posicao 300 ate 1400 automaticamente
 
     //se posicionamento manual
@@ -162,11 +152,10 @@ void motorPasso()
 
       //nao deixa palhetas fechar completamente com a ventilacao ligada
       if (passo.passos() < 300) {
-        posicaoPasso = 300;
-        posicaoEncoder = 62;
+        encoder.posicao(300);
       }
       
-      passo.posicao(posicaoPasso);
+      passo.posicao(encoder.passo());
       
     }//posiciona paletas na posicao do encoder
 
@@ -178,7 +167,7 @@ void motorPasso()
   //se movimentado paletas com ventilacao desligada (modo de manutencao)
   else if (teste.ifset(manutencao)) {
     //posiciona paletas
-    passo.posicao(posicaoPasso);
+    passo.posicao(encoder.passo());
   }//fim do teste de modo de manutencao
 
   // === se ventilacao desligada e fora do modo de manutencao ===
@@ -194,8 +183,7 @@ void motorPasso()
     else {
       passo.parada();
       passo.passos(0);
-      posicaoEncoder = 3;
-      posicaoPasso = 0;
+      encoder.posicao(0);
     }//fim do final do curso
     
   }//fim do teste de ventilacao desligada e fora do modo de manutencao

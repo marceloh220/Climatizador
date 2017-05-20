@@ -48,8 +48,7 @@ void fechamento() {
 
   passo.passos(0);     //seta o sistema com o numero de passos fechado
   passo.parada();      //para o motor de passo apos concluir o fechamento
-  posicaoPasso = 0;    //zera posicao do motor de passo
-  posicaoEncoder = 3;  //zera a posicao do encoder
+  encoder.posicao(0);  //zera posicao do motor de passo no encoder
 
 }
 

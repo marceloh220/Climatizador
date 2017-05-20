@@ -156,9 +156,27 @@ Register teste;
 #define progOFF    5    //flag que indica que um desligamento programado foi requisitado
 #define travaEnco  7    //flag que indica que o botao do encoder foi travado, apos o botao do encoder ser pressionado ele precisa ser solto para nova leitura
 
-//variaveis para leitura do encoder e controle do motor de passo da movimentacao das paletas horizontais
-int16_t posicaoEncoder;
-int16_t posicaoPasso;
+//Para leitura do encoder e controle do motor de passo da movimentacao das paletas horizontais
+class Encoder {
+  private:
+    //vetor com estados para leitura do encoder em modo de quadratura
+    int8_t estados[16] = { 0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0 };
+    int16_t posicaoEncoder;
+    int16_t posicaoPasso;
+    uint16_t escala;
+  public:
+    //construtor
+    Encoder(uint16_t esc = 1) { escala = esc; }
+    //manipulacao dos atributos
+    inline void encoder(int16_t pos) { posicaoEncoder += estados[pos]; }
+    inline void atualiza() { posicaoPasso = (posicaoEncoder >> 2) * escala; }
+    inline int16_t passo() { return posicaoPasso; }
+    inline int16_t posicao() { return posicaoPasso; }
+    inline int16_t posicao(int16_t pos) { posicaoPasso = pos; posicaoEncoder = (pos / 5)|0x03; }
+    //teste de condicoes
+    inline uint8_t limites(int16_t min, int16_t max) { return ( posicaoPasso >= min && posicaoPasso <= max ); }
+};
+Encoder encoder(encoderEscala);
 
 /**************************************************************************************************************************
                                       Inicializacao dos modulos do core Marcelino
@@ -253,13 +271,11 @@ void loop() {
   /*
     Usei isso como debug para determinar os valores
     maximos e minimos para o encoder e o motor de passo
-
-
-    serial.print("Encoder passo: ");
-    serial.println(posicaoPasso);
-    serial.print("Encoder: ");
-    serial.println(posicaoEncoder);
   */
+
+  serial.print("Encoder passo: ");
+  serial.println(encoder.posicao());
+
 
   //Tarefa realizada a cada 10 milisegundo
   if ( (timer.millis() - temporizacao.ms10) >= 10) {  //Testa se passou 10ms
