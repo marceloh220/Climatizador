@@ -172,7 +172,7 @@ class Encoder {
     inline void atualiza() { posicaoPasso = (posicaoEncoder >> 2) * escala; }
     inline int16_t passo() { return posicaoPasso; }
     inline int16_t posicao() { return posicaoPasso; }
-    inline int16_t posicao(int16_t pos) { posicaoPasso = pos; posicaoEncoder = (pos / 5)|0x03; }
+    inline int16_t posicao(int16_t pos) { posicaoPasso = pos; posicaoEncoder = (pos / 5)|(posicaoEncoder & 0x03); }
     //teste de condicoes
     inline uint8_t limites(int16_t min, int16_t max) { return ( posicaoPasso >= min && posicaoPasso <= max ); }
 };

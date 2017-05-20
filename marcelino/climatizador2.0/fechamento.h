@@ -37,11 +37,12 @@ void fechamento() {
   while (digital.read(pinfimdeCurso))
   {
     passo.antihorario();  //gira o motor de passo no sentido antihorario para fechar a ventilacao
-    delay.ms(3);          //aguarda um tempo para o posicionamento do motor durante a movimentacao
+    delay.ms(5);          //aguarda um tempo para o posicionamento do motor durante a movimentacao
+                          //se o tempo for muito curto o motor nao consegue se posicionar corretamente e perde passos
     
     wdt.reset();  //reseta o wdt para evitar reinicializacoes
 
-    if (passo.passos() < -3600)  //se esta demorando muito para fechar
+    if (passo.passos() < -1600)  //se esta demorando muito para fechar
       erro(erroHorizontal);      //avisa sobre o erro
 
   }//fim do fechamento da ventilacao
