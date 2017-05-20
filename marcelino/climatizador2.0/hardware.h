@@ -58,7 +58,8 @@
       Timer 1: Em uma versao futura ira realizar a captura da largura de pulso para medicao de nivel do reservatorio
       Timer 2: Gera constante de tempo para operacao do motor de passo e leitura do encoder rotativo
       ADC: Conversor Analogico Digital, realiza a leitura de A2 (sensor de temperatura) e A3 (teclado)
-      TWI: Comunicacao a 2 fios para controle de atuadores e display LCD 16x2 com CI PCF8574, leitura do relogio de tempo real e temperatura com CI DS3231
+      TWI: Comunicacao a 2 fios para controle de atuadores e display LCD 16x2 com CI PCF8574, leitura do relogio de tempo real e temperatura com CI DS3231, Bit Rate 400kHz.
+      UART: Comunicacao Assincrona com dois fios em protocolo RS232 (Universal Asynchronous Receiver/Transmitter), Baud Rate 9600, 8bits + 1bit parada sem bit de paridade.
     
 
 ***************************************************************************************************************************/

@@ -2,6 +2,9 @@
 
   Autor: Marcelo Henrique Moraes
   E-mail: marceloh220@hotmail.com
+  Data: 5, abr. 2017
+  Ultima Revisao: 15, mai. 2017
+  Revisao Atual: 20, mai. 2017
   Copyright (c) 2017 Marcelo Henrique Moraes
 
   Projeto Casa Sustentavel: Climatizador de AR
@@ -151,6 +154,7 @@ Register teste;
 #define manutencao 3    //flag que indica que o sistema esta em modo "manutencao"
 #define acteclado  4    //flag que indica que ocorreu alguma acao no teclado
 #define progOFF    5    //flag que indica que um desligamento programado foi requisitado
+#define travaEnco  7    //flag que indica que o botao do encoder foi travado, apos o botao do encoder ser pressionado ele precisa ser solto para nova leitura
 
 //variaveis para leitura do encoder e controle do motor de passo da movimentacao das paletas horizontais
 int16_t posicaoEncoder;
@@ -205,8 +209,10 @@ void setup() {
 
   //escreve uma apresentacao
   display.print("  Climatizador  ");
+  serial.println("  Climatizador  ");
   display.set(0, 1);
   display.print(" ENG. Eletrica  ");
+  serial.println(" ENG. Eletrica  ");
 
   //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
@@ -271,6 +277,9 @@ void loop() {
 
     teclado.liberar();                                //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclado
 
+    if (digital.ifset(encoderButton))  //Se o botao do encoder foi solto
+      teste.clear(travaEnco);          //Destrava a leitura do botao
+
     temporizacao.ms60 = timer.millis();               //Salva o tempo atual para nova tarefa apos 60ms
 
   }//fim da tarefa de 60ms
@@ -283,25 +292,6 @@ void loop() {
       desligamento();
 
     relogio.sinalizar();  //Sinaliza ajuste do relogio com blink da configuracao selecionada
-
-    // === botao do encoder ===
-
-    if (controle.velocidade() > 0) {        //Se ventilacao ligada
-      if (digital.ifclear(encoderButton)) { //Se botao do encoder pressionado
-        teste.toggle(automatic);            //Liga ou desliga o movimento automatico do motor de passo
-        teste.toggle(sinaliza);             //Liga ou desliga sinalizacao de automatico
-      }//fim do teste do botao
-    }//fim do teste de velocidade
-
-    else {                    //Se ventilacao desligada
-      teste.clear(automatic); //Tira movimentacao do modo automatico
-      teste.clear(sinaliza);  //Desliga a sinalizacao de automatico
-
-      //Se botao do encoder pressionado
-      if (digital.ifclear(encoderButton))
-        fechamento();
-      
-    }//fim do teste de ventilacao desligada
 
     //sinalizado de movimentacao automatica das paletas horizontais
     if (teste.ifset(sinaliza))        //Se sinalizacao ligada
@@ -320,15 +310,15 @@ void loop() {
     //verifica se a palheta horizontal esta aberta enquanto a ventilacao principal esta ligada
     //ligar a ventilacao sem que tenha uma abertura para passagem do vento aumenta a carga do motor
     if (!digital.read(pinfimdeCurso) && controle.velocidade() > 0) {  //se ventilacao foi ligada mas a apalheta nao abril
-      
+
       controle.velocidade(0); //desliga a ventilacao principal
       passo.passos(0);        //zera a contagem de passos
       erro(erroMotorPasso);   //sinaliza o erro
-      
+
     }//fim da verificacao de abertura da palheta horizontais
 
     controle.sinalizar(); //chama a sinalizacao para o nivel de agua
-    
+
     temporizacao.s1 = timer.millis(); //Salva o tempo atual para nova tarefa apos 1s
 
   }//fim da tarefa de 1s
@@ -373,7 +363,7 @@ void loop() {
     temporizacao.s30 = timer.millis();  //impede a mudança do display
     temporizacao.m1 = timer.millis();   //impede o desligamento da luz de fundo do display
     temporizacao.m5 = timer.millis();   //impede que o sistema seja desligado mesmo com a ventilacao desligada
-    
+
   }//fim dos testes de manutencao e acao de teclado detectado
 
   wdt.clear();  //Limpa o watch dog timer (WDT) para evitar reset

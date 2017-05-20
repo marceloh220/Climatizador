@@ -79,6 +79,34 @@ void acionamentos() {
       relogio.incrementa();   //incrementa a hora/data na posicao
   }//fim teste tecla 7
 
+  // === botao do encoder ===
+
+  if (teste.ifclear(travaEnco)) {           //Verifica se o botao do encoder esta liberado para leitura
+    
+    if (controle.velocidade() > 0) {        //Se ventilacao ligada
+      if (digital.ifclear(encoderButton)) { //Se botao do encoder pressionado
+        teste.set(travaEnco);               //Trava a leiruta do botao do encoder
+        teste.toggle(automatic);            //Liga ou desliga o movimento automatico do motor de passo
+        teste.toggle(sinaliza);             //Liga ou desliga sinalizacao de automatico
+      }//fim do teste do botao
+    }//fim do teste de velocidade
+
+    else {                    //Se ventilacao desligada
+      teste.clear(automatic); //Tira movimentacao do modo automatico
+      teste.clear(sinaliza);  //Desliga a sinalizacao de automatico
+
+      //Se botao do encoder pressionado
+      if (digital.ifclear(encoderButton)) {
+        
+        teste.set(travaEnco);  //Trava a leiruta do botao do encoder
+        fechamento();          //Realiza o fechamento das paletas de ventilacao frontais
+        
+      }//fim do teste de botao do encoder
+
+    }//fim do teste de ventilacao desligada
+    
+  }//fim do teste de trava do botao do encoder
+
 }//fim da funcao acao
 
 #endif
