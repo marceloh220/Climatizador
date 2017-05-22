@@ -33,13 +33,16 @@
 
 void fechamento() {
 
+  motor.period(OFF);  //Desliga o timer de temporizacao do motor de passo para realizar o desligamento
+
   //enquanto a chave fim de curso nao for fechada
   while (digital.read(pinfimdeCurso))
   {
-    passo.antihorario();  //gira o motor de passo no sentido antihorario para fechar a ventilacao
-    delay.ms(5);          //aguarda um tempo para o posicionamento do motor durante a movimentacao
-                          //se o tempo for muito curto o motor nao consegue se posicionar corretamente e perde passos
-    
+    passo.antihorario();          //gira o motor de passo no sentido antihorario para fechar a ventilacao
+    delay.us(tempoUsMotorPasso);  //aguarda um tempo para o posicionamento do motor durante a movimentacao
+    //se o tempo for muito curto o motor nao consegue se posicionar corretamente e perde passos
+    //Se o tempo for muito longo a movimentacao do motor de passo fica mais lenta
+
     wdt.reset();  //reseta o wdt para evitar reinicializacoes
 
     if (passo.passos() < -1600)  //se esta demorando muito para fechar
@@ -50,6 +53,8 @@ void fechamento() {
   passo.passos(0);     //seta o sistema com o numero de passos fechado
   passo.parada();      //para o motor de passo apos concluir o fechamento
   encoder.posicao(0);  //zera posicao do motor de passo no encoder
+
+  motor.period(tempoUsMotorPasso);  //Volta a ligar o timer do motor de passo
 
 }
 
