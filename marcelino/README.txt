@@ -38,9 +38,9 @@ Marcelino Atmega168 (Arduino Diecimila ou qualquer outra coisa com MCU Atmega168
 Em F_CPU e selecionado a velocidade:
 F_CPU 16MHz (cristal externo de 16MHz)
 F_CPU 8MHz	(	oscilador interno,
-				dispensa cristal externo,
-				dois pinos digitais extras 9 (D20) e 10 (D21),
-				possibilidade de uso do timer 2 em modo assincrono com cristal nos pinos 9 (x1) e 10 (x2)
-			 )
+			dispensa cristal externo,
+			dois pinos digitais extras 9 (D20) e 10 (D21),
+			possibilidade de uso do timer 2 em modo assincrono com cristal nos pinos 9 (x1) e 10 (x2)
+		)
 
 Exemplos e manuais dos modulos do core Marcelino em ..\examples
