@@ -48,7 +48,7 @@ public:
 	}
 	
 	void ajuste() {
-		_blink&=~(1<<_ajuste++);
+		this->_blink &= ~bv(this->_ajuste++);
 		if (this->_ajuste > 7)
 			this->_ajuste = 0;
 	}
@@ -62,10 +62,10 @@ public:
 	}
 	
 	void sinalizar() {
-		if(_ajuste==0)
-			_blink=0;
+		if(this->_ajuste == 0)
+			this->_blink = 0;
 		else
-			_blink^=(1<<_ajuste);
+			this->_blink ^= bv(this->_ajuste);
 	}
 	
 	void decrementa() {					//decrementa as datas
@@ -129,7 +129,7 @@ public:
 	void incrementa() {					//incrementa as datas
 		int8_t aux;
 		
-		switch (_ajuste) {				//Testa as posicoes de ajuste
+		switch(this->_ajuste) {			//Testa as posicoes de ajuste
 
 			case 1:						//Se cursor posicionado para ajuste de hora
 				aux = DS3231::hour();   //Le hora do relogio RTC
@@ -199,10 +199,10 @@ public:
 
 	char* hora() {								//transforma hora em uma string
 		
-		if(! (_blink&(1<<1) ) ) {				//Testa se deve fazer blink hora
+		if(! (this->_blink & bv(1) ) ) {		//Testa se deve fazer blink hora
 			int aux = DS3231::hour();			//Le hora do dispositivo RTC DS3231
-			this->string[0] = (aux/10)+'0';		//Converte dezena hora em caracter e salva na primeira posicao da string
-			this->string[1] = (aux%10)+'0';		//Converte unidade hora em caracter e salva na segunda posicao da sting
+			this->string[0] = (aux / 10) + '0';	//Converte dezena hora em caracter e salva na primeira posicao da string
+			this->string[1] = (aux % 10) + '0';	//Converte unidade hora em caracter e salva na segunda posicao da sting
 			this->string[2] = '\0';				//Salva caracter null para sinalizar fim da string
 			return string;						//Retorna hora na string convertida
 		}//fim do teste de blink
@@ -218,10 +218,10 @@ public:
 	
 	char* minuto() {							//transforma minuto em uma string
 		
-		if(! (_blink&(1<<2) ) ) {				//Testa se deve fazer blink minuto
+		if(! (this->_blink & bv(2) ) ) {		//Testa se deve fazer blink minuto
 			int aux = DS3231::minute();			//Le minuto do dispositivo RTC DS3231
-			this->string[0] = (aux/10)+'0';		//Converte dezena minuto em caracter e salva na primeira posicao da string
-			this->string[1] = (aux%10)+'0';		//Converte unidade minuto em caracter e salva na segunda posicao da sting
+			this->string[0] = (aux / 10) + '0';	//Converte dezena minuto em caracter e salva na primeira posicao da string
+			this->string[1] = (aux % 10) + '0';	//Converte unidade minuto em caracter e salva na segunda posicao da sting
 			this->string[2] = '\0';				//Salva caracter null para sinalizar fim da string
 			return string;						//Retorna minuto na string convertida
 		}//fim do teste de blink
@@ -237,10 +237,10 @@ public:
 	
 	char* segundo() {							//transforma segundo em uma string
 		
-		if(! (_blink&(1<<3) ) ) {				//Testa se deve fazer blink segundo
+		if(! (this->_blink & bv(3) ) ) {		//Testa se deve fazer blink segundo
 			int aux = DS3231::second();			//Le segundo do dispositivo RTC DS3231
-			this->string[0] = (aux/10)+'0';		//Converte dezena segundo em caracter e salva na primeira posicao da string
-			this->string[1] = (aux%10)+'0';		//Converte unidade segundo em caracter e salva na segunda posicao da sting
+			this->string[0] = (aux / 10) + '0';	//Converte dezena segundo em caracter e salva na primeira posicao da string
+			this->string[1] = (aux % 10) + '0';	//Converte unidade segundo em caracter e salva na segunda posicao da sting
 			this->string[2] = '\0';				//Salva caracter null para sinalizar fim da string
 			return string;						//Retorna segundo na string convertida
 		}//fim do teste de blink
@@ -256,7 +256,7 @@ public:
 	
 	char* semana() {							//Retorna semana em uma string
 		
-		if(! (_blink&(1<<4) ) )					//Testa se deve fazer blink semana
+		if(! (this->_blink & bv(4) ) )		//Testa se deve fazer blink semana
 			return DS3231::weekSTR();			//Retorna semana do dispositivo RTC DS3231
 
 		else {									//Se minuto em blink
@@ -271,10 +271,10 @@ public:
 	
 	char* dia() {								//Transforma dia em uma string
 		
-		if(! (_blink&(1<<5) ) ) {				//Testa se deve fazer blink dia
+		if(! (this->_blink & bv(5) ) ) {		//Testa se deve fazer blink dia
 			int aux = DS3231::day();			//Le dia do dispositivo RTC DS3231
-			this->string[0] = (aux/10)+'0';		//Converte dezena dia em caracter e salva na primeira posicao da string
-			this->string[1] = (aux%10)+'0';		//Converte unidade dia em caracter e salva na segunda posicao da sting
+			this->string[0] = (aux / 10) + '0';	//Converte dezena dia em caracter e salva na primeira posicao da string
+			this->string[1] = (aux % 10) + '0';	//Converte unidade dia em caracter e salva na segunda posicao da sting
 			this->string[2] = '\0';				//Salva caracter null para sinalizar fim da string
 			return string;						//Retorna dia na string convertida
 		}//fim do teste de blink
@@ -290,7 +290,7 @@ public:
 	
 	char* mes() {								//Retorna mes em uma string
 		
-		if(! (_blink&(1<<6) ) )					//Testa se deve fazer blink mes
+		if(! (this->_blink & bv(6) ) )		//Testa se deve fazer blink mes
 			return DS3231::monthSTR();			//Retorna mes do dispositivo RTC DS3231
 
 		else {									//Se minuto em blink
@@ -305,12 +305,12 @@ public:
 	
 	char* ano() {								//Transforma ano em uma string
 
-		if(! (_blink&(1<<7) ) ) {				//Testa se deve fazer blink ano
+		if(! (this->_blink & bv(7) ) ) {		//Testa se deve fazer blink ano
 			char aux = DS3231::year();			//Le ano do dispositivo RTC DS3231
 			this->string[0] = '2';				//Salva caracter na primeira posicao da string
 			this->string[1] = '0';				//Salva caracter na segunda posicao da string
-			this->string[2] = (aux/10)+'0';		//Converte dezena ano em caracter e salva na terceira posicao da string
-			this->string[3] = (aux%10)+'0';		//Converte unidade ano em caracter e salva na quarta posicao da string
+			this->string[2] = (aux / 10) + '0';	//Converte dezena ano em caracter e salva na terceira posicao da string
+			this->string[3] = (aux % 10) + '0';	//Converte unidade ano em caracter e salva na quarta posicao da string
 			this->string[4] = '\0';				//Salva caracter null para sinalizar fim da string
 			return string;						//Retorna ano na string convertida
 		}//fim do teste de blink
