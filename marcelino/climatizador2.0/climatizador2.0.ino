@@ -227,7 +227,7 @@ Relogio relogio(pt_br);                                 //Relogio RTC com dispos
 Temperatura temperatura(pinLM35, 30);                   //Temperaturas com sensor de temperatura do DS3231 e LM35, media de 30 leituras analogicas
 Controle controle(relayADDRESS, INVERSO);               //Controle dos atuadores com logica inversa (dreno de corrente)
 Teclado teclado(pinTeclado);                            //Leitura do teclado analogico
-Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO); //Motor de passo da movimentacao das paletas horizontais, uma switch fim de curso e em modo de ANODO comum
+Passo passo(motorPA, motorPB, motorPC, motorPD, ANODO); //Motor de passo da movimentacao das paletas horizontais em modo de ANODO comum
 
 /**************************************************************************************************************************
                                                    Funcoes principais
