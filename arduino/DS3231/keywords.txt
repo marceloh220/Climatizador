@@ -2,8 +2,8 @@
 DS3231	KEYWORD1
 
 ######################
-sec		KEYWORD2
-min		KEYWORD2
+second	KEYWORD2
+minute	KEYWORD2
 hour	KEYWORD2
 week	KEYWORD2
 day		KEYWORD2

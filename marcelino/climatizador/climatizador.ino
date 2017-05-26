@@ -96,7 +96,11 @@
 // === Pinos do Arduino ===
 
 #define pinTeclado          A3     //Pino de leitura do teclado analogico
+<<<<<<< HEAD
 #define pinLM35             A0     //Pino de leitura do sensor de temperatura LM35
+=======
+#define pinLM35             A2     //Pino de leitura do sensor de temperatura LM35
+>>>>>>> 425b9eef06be985639377c62f7c7827fba9ef489
 
 #define pinUltrason          9     //Pino do sensor de volume HC-SR04, realiza o disparo do sensor ultrassonico
 #define pinEcho              8     //O pino de echo do sensor ultrasonico nao pode der alterado, pois esta no hardware de captura interno do MCU
@@ -202,11 +206,15 @@ void acao();
 void medirVolume();
 
 //Cria um tipo de variavel para ponteiro de funcoes
-typedef void (*func)();
+typedef void (*funcoes)();
 
 //Vetor de funcoes "mostrar..." para apresentar variaveis no display
 //Este vetor guarda os enderecos das funcoes
+<<<<<<< HEAD
 func mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel, mostraHora};
+=======
+funcoes mostra[] = {mostraTemperatura, mostraHumidade, mostraVelocidade, mostraNivel, mostraHora};
+>>>>>>> 425b9eef06be985639377c62f7c7827fba9ef489
 
 //Ponteiro para as funcoes "mostra..."
 //Basta alterar o valor do ponteiro que sera alterado a funcao que sera chamada
@@ -621,7 +629,12 @@ class Teclado: private Analog {
 IHM8574 display(displayADDRESS);
 
 //Dispositivo RTC instanciado com o nome de relogio
+<<<<<<< HEAD
 DS3231 relogio;
+=======
+//Meses e dias da semana em pt_br
+DS3231 relogio(pt_br);
+>>>>>>> 425b9eef06be985639377c62f7c7827fba9ef489
 
 //Objeto para leituras de temperatura ambiente com sensores DS3231 e de temperatura refrigerada ligada ao pino do sensor LM35
 //Lembrando que o construtor da classe Temperatura recebe o pino analogico do sensor a ser lido
