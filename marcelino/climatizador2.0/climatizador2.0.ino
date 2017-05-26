@@ -187,7 +187,7 @@ class Encoder {
       posicaoEncoder = (pos / 5) | (posicaoEncoder & 0x03);
     }
     //teste de condicoes
-    inline uint8_t limites(int16_t min, int16_t max) {
+    inline uint8_t limite(int16_t min, int16_t max) {
       return ( posicaoPasso >= min && posicaoPasso <= max );
     }
 };

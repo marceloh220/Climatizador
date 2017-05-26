@@ -53,7 +53,7 @@ void motorPasso()
   if (velocidade > 0) {
 
     //enqanto posicao em um valor minimo e um valor maximo
-    if ( encoder.limites(0,1440) ) {
+    if ( encoder.limite(0,1440) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
@@ -94,7 +94,7 @@ void motorPasso()
   else if (velocidade == 0) {
 
     //enquanto posicao em um valor minimo e maximo
-    if ( encoder.limites(0,1440) ) {
+    if ( encoder.limite(0,1440) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
