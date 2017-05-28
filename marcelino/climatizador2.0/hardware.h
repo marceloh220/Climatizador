@@ -60,6 +60,16 @@
       ADC: Conversor Analogico Digital, realiza a leitura de A2 (sensor de temperatura) e A3 (teclado)
       TWI: Comunicacao a 2 fios para controle de atuadores e display LCD 16x2 com CI PCF8574, leitura do relogio de tempo real e temperatura com CI DS3231, Bit Rate 400kHz.
       UART: Comunicacao Assincrona com dois fios em protocolo RS232 (Universal Asynchronous Receiver/Transmitter), Baud Rate 9600, 8bits + 1bit parada sem bit de paridade.
+
+    Reles PCF8574:
+      Pino 0: Velocidade 1 da ventilacao
+      Pino 1: Velocidade 2 da ventilacao
+      Pino 2: Velocidade 3 da ventilacao
+      Pino 3: Bomba de agua
+      Pino 4: Direcionamento vertical
+      Pino 5: Gerador de Anions
+      Pino 6: Nada implementado (livre)
+      Pino 7: Sinalização de reservatorio com nivel baixo
     
 
 ***************************************************************************************************************************/
@@ -121,10 +131,9 @@
 
 #define bombaDagua          3  //rele de bomba de agua
 #define direcaoVertical     4  //palhetas de direcionamento verticais da ventilacao
+#define geradorAnion        5  //rele de gerador de anion
 
-//alguns pinos livres, estou usando o livre1 para sinalizar a ventilacao em modo automatico (completamente desnecessario, mas se ta livre vamo usa)
-#define livre1              5  //rele livre
-#define livre2              6  //rele livre
+#define livre               6  //rele livre
 
 //sinaliza nivel baixo do reservatorio
 #define pinSinalizacao      7  //rele de led de sinalizacao

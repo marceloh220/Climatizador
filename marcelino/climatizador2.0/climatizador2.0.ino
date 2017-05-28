@@ -3,8 +3,8 @@
   Autor: Marcelo Henrique Moraes
   E-mail: marceloh220@hotmail.com
   Data: 5, abr. 2017
-  Ultima Revisao: 15, mai. 2017
-  Revisao Atual: 20, mai. 2017
+  Ultima Revisao: 20, mai. 2017
+  Revisao Atual: 27, mai. 2017
   Copyright (c) 2017 Marcelo Henrique Moraes
 
   Projeto Casa Sustentavel: Climatizador de AR
@@ -253,7 +253,7 @@ void setup() {
     display.create(0, get_pgm(graus, i), i);
 
   //configura os pinos do reles
-  controle.configura(velocidade1, velocidade2, velocidade3, bombaDagua, direcaoVertical, livre1, livre2, pinSinalizacao);
+  controle.configura(velocidade1, velocidade2, velocidade3, bombaDagua, direcaoVertical, geradorAnion, livre, pinSinalizacao);
 
   //Inicia com todos os reles desligado
   controle.parada();
@@ -322,11 +322,6 @@ void loop() {
       desligamento();
 
     relogio.sinalizar();  //Sinaliza ajuste do relogio com blink da configuracao selecionada
-
-    //sinalizado de movimentacao automatica das paletas horizontais
-    if (teste.ifset(sinaliza))        //Se sinalizacao ligada
-      controle.reles(livre1, HIGH);   //Liga sinalizacao de automatico
-    else controle.reles(livre1, LOW); //Se nao, desliga led de sinalizacao
 
     temporizacao.ms500 = timer.millis();  //Salva o tempo atual para nova tarefa apos 500ms
 
