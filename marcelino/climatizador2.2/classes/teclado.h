@@ -1,7 +1,7 @@
 #ifndef _TECLADO_H
 #define _TECLADO_H
 
-#include <analog.h>
+#include <defines.h>
 
 /**************************************************************************************************************************
 
@@ -73,7 +73,7 @@ class Teclado: private Analog {
     }
     
     inline void liberar() {
-      if (Analog::read(pino) > 980)
+      if (Analog::read(pino) > 900)
         this->tranca = 0;
     }
 

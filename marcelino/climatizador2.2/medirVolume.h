@@ -40,26 +40,26 @@ void capturaVolume() {
 
   //se detectado borda de subida
   if (captura.rising()) {
-    
+
     //limpa o temporizador de captura
     captura.timer(0);
     //configura a o hardware para capturar a borda de descida
     captura.attach(CAPT, FALLING, capturaVolume);
-    
+
   }//fim do teste de borda de subida
 
   //se nao, foi detectado uma borda de descida
   else {
-    
+
     //salva o valor capturado
     reservatorio.pulso = captura.capt() + reservatorio.overflow * 65535;
-    
+
     //limpa os overflows do temporizador para a proxima captura
     reservatorio.overflow = 0;
-    
+
     captura.detach(OVF);  //desanexa o overflow da interrupcao
     captura.detach(CAPT);  //desanexa a captura da interrupcao
-    
+
   }//fim do teste de borda de descida
 
 }//fim da interruptao de captura
@@ -76,10 +76,11 @@ void medirVolume() {
   captura.attach(OVF, capturaOVF);
 
   // === aciona sensor ultrassom ===
+  digital.mode(pinUltrason, OUTPUT);
   digital.write(pinUltrason, OFF);
   delay.us(2);
   digital.write(pinUltrason, ON);
-  delay.us(10);
+  delay.us(15);
   digital.write(pinUltrason, OFF);
 
   //espera o final da captura
@@ -100,10 +101,11 @@ void medirVolume() {
     Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
     Distancia = captura * 1.06340625e-05 [m]
   */
-  
+
   reservatorio.milimetros = reservatorio.pulso * 0.0106340625;
-  //serial.print("Largura de pulso: ");
-  //serial.println(reservatorio.milimetros);
+  serial.print("Distancia: ");
+  serial.print(reservatorio.milimetros);
+  serial.println(" mm");
 
   //cm = mm * 10e-2
   reservatorio.centimetros = reservatorio.milimetros * 1e-2;

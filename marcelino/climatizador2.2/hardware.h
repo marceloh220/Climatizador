@@ -76,8 +76,8 @@
 
 // === Endereco TWI do CI PCF8574A (0100 A2 A1 A0 R/~W) ===
 
-#define relayADDRESS (0b01000010)    //endereco do controle dos reles
-#define displayADDRESS (0b01000000)  //endereco do display
+#define relayADDRESS (0b01000000)    //endereco do controle dos reles
+#define displayADDRESS (0b01001110)  //endereco do display
 
 
 // === Nome para as constantes do reservatorio ===
@@ -88,9 +88,9 @@
 #define nivelMED                  130
 
 //caracteristicas do reservatorio
-#define alturaReservatorio        60
-#define comprimentoReservatorio   7.668711
-#define larguraReservatorio       1
+#define alturaReservatorio        762
+#define comprimentoReservatorio   255
+#define larguraReservatorio       210
 
 
 // === Pinos do Arduino ===

@@ -245,10 +245,10 @@ void setup() {
 
   //escreve uma apresentacao
   display.print("  Climatizador  ");
-  serial.println("  Climatizador  ");
+  //  serial.println("  Climatizador  ");
   display.set(0, 1);
   display.print(" ENG. Eletrica  ");
-  serial.println(" ENG. Eletrica  ");
+  //  serial.println(" ENG. Eletrica  ");
 
   //Salva caracter do simbolo de graus celcius na posicao 0 da memoria grafica do display
   //display.create(posicao da memoria grafica, linha do simbolo, interador para salvar as oito linhas da matriz)
@@ -321,8 +321,10 @@ void loop() {
   if ( (timer.millis() - temporizacao.ms500) >= 500) {  //Testa se passou 500ms
 
     //verifica se foi requerido entrada em modo de baixo consumo
-    if (teste.ifset(progOFF))
+    if (teste.ifset(progOFF)) {
+      while (!digital.read(2));
       desligamento();
+    }
 
     relogio.sinalizar();  //Sinaliza ajuste do relogio com blink da configuracao selecionada
 
