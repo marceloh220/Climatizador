@@ -40,6 +40,19 @@ private:
 	uint8_t _ajuste;
 	uint8_t _blink;
 	char string[5];
+
+	void blink_time() {
+		this->string[0] = ' ';
+		this->string[1] = ' ';
+		this->string[2] = '\0';
+	}
+
+	void blink_date() {
+		this->string[0] = ' ';
+		this->string[1] = ' ';
+		this->string[2] = ' ';
+		this->string[3] = '\0';
+	}
 	
 public:
 
@@ -208,9 +221,7 @@ public:
 		}//fim do teste de blink
 		
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = '\0';
+			blink_time();
 			return string;						//Retorna string com espacos vazios
 		}
 			
@@ -227,9 +238,7 @@ public:
 		}//fim do teste de blink
 		
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = '\0';
+			blink_time();
 			return string;						//Retorna string com espacos vazios
 		}
 		
@@ -246,9 +255,7 @@ public:
 		}//fim do teste de blink
 		
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = '\0';
+			blink_time();
 			return string;						//Retorna string com espacos vazios
 		}
 		
@@ -260,10 +267,7 @@ public:
 			return DS3231::weekSTR();			//Retorna semana do dispositivo RTC DS3231
 
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = ' ';
-			this->string[3] = '\0';
+			blink_date();
 			return string;						//Retorna string com espacos vazios
 		}
 		
@@ -280,9 +284,7 @@ public:
 		}//fim do teste de blink
 		
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = '\0';
+			blink_time();
 			return string;						//Retorna string com espacos vazios
 		}
 			
@@ -294,10 +296,7 @@ public:
 			return DS3231::monthSTR();			//Retorna mes do dispositivo RTC DS3231
 
 		else {									//Se minuto em blink
-			this->string[0] = ' ';
-			this->string[1] = ' ';
-			this->string[2] = ' ';
-			this->string[3] = '\0';
+			blink_date();
 			return string;						//Retorna string com espacos vazios
 		}
 		

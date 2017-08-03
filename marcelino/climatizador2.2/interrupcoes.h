@@ -31,7 +31,22 @@
 
 ***************************************************************************************************************************/
 
+// === Temporizacoes e leitura do controle remoro ===
+
+void timer0OVF() {
+  static uint8_t aux;
+
+  aux++;
+
+  if(aux == 20) {
+    aux = 0;
+    temporizacao.millis++;
+  }
+  
+}
+
 // === Controle do motor de passo ===
+
 //interrupcao de overflow do timer 2
 void motorPasso()
 {
@@ -53,7 +68,7 @@ void motorPasso()
   if (velocidade > 0) {
 
     //enqanto posicao em um valor minimo e um valor maximo
-    if ( encoder.limite(0,1440) ) {
+    if ( encoder.limite(0,aberMAX) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
@@ -83,10 +98,10 @@ void motorPasso()
     }//fim do teste de limites
 
     //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
-    if (encoder.posicao() > 1440)
-      encoder.posicao(1440);
-    if (encoder.posicao() < 300)//valor nao chega a zero quando a ventilacao esta ligada para as paletas ficarem meio abertas
-      encoder.posicao(300);
+    if (encoder.posicao() > aberMAX)
+      encoder.posicao(aberMAX);
+    if (encoder.posicao() < aberMIN)//valor nao chega a zero quando a ventilacao esta ligada para as paletas ficarem meio abertas
+      encoder.posicao(aberMIN);
 
   }//fim velocidade > 0
 
@@ -94,7 +109,7 @@ void motorPasso()
   else if (velocidade == 0) {
 
     //enquanto posicao em um valor minimo e maximo
-    if ( encoder.limite(0,1440) ) {
+    if ( encoder.limite(0,aberMAX) ) {
 
       //se detectado um novo estado
       if (anterior != atual) {
@@ -124,8 +139,8 @@ void motorPasso()
     }//fim do teste de limites
 
     //previne overfowls na posicao do encoder (esses overflows iriam danificar o mecanismo de movimentacao das paleras horizontais)
-    if (encoder.posicao() > 1440)
-      encoder.posicao(1440);
+    if (encoder.posicao() > aberMAX)
+      encoder.posicao(aberMAX);
     if (encoder.posicao() < 0)    //com ventilacao desligada o posicionamento pode chegar a 0
       encoder.posicao(0);
 
@@ -143,16 +158,16 @@ void motorPasso()
 
     //se em modo automatico
     if (teste.ifset(automatic)) {
-      passo.automatico(300, 1400);
+      passo.automatico(aberMIN, aberMAX);
       encoder.posicao(passo.passos());
-    }//movimenta paletas da posicao 300 ate 1400 automaticamente
+    }//movimenta paletas da posicao aberMIN ate aberMAX automaticamente
 
     //se posicionamento manual
     else {
 
       //nao deixa palhetas fechar completamente com a ventilacao ligada
-      if (passo.passos() < 300) {
-        encoder.posicao(300);
+      if (passo.passos() < aberMIN) {
+        encoder.posicao(aberMIN);
       }
       
       passo.posicao(encoder.passo());
@@ -191,10 +206,6 @@ void motorPasso()
 
 }//fim da interrupcao motorPasso
 
-
-// === Captura do sensor de nivel do reservatorio ===
-//futuramente o sensor de nivel sera medido com uma captura do timer 1
-
 // === WDT resetou o MCU ===
 
 void resetWDT()
@@ -209,10 +220,17 @@ void resetWDT()
 void desligamentoProgramado()
 {
 
-  teste.set(progOFF);        //indica um desligamento programado
-  external.detachINT(INT0);  //desativa a interrupcao INT0
+  delay.us(5);  //aguarda tempo de transitorio
   
-  temporizacao.ms500 = timer.millis();  //faz com que o desligamento programado acontece nos proximos 500ms (debounce)
+  if(!digital.read(2)) {      //se botao realmente pressionado
+    
+    teste.set(progOFF);        //indica um desligamento programado
+    external.detachINT(INT0);  //desativa a interrupcao INT0
+  
+    temporizacao.ms500 = timer.millis();  //faz com que o desligamento programado acontece nos proximos 500ms (debounce)
+  }
+
+  while(!digital.read(2));    //aguarda o botao ser solto
 
 }
 
@@ -221,6 +239,9 @@ void ligamentoProgramado()
 {
 
   sleep.disable(SLEEP);  //acorda a cpu
+  
+  while(!digital.read(2));    //aguarda o botao ser solto
+  
   wdt.config(RESET);     //configura o watch dog timer (WDT) para resetar o MCU
   wdt.timeout(W_16MS);   //configura o estouro do WDT no menor tempo possivel
   wdt.enable();          //habilita o WDT

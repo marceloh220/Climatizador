@@ -3,8 +3,8 @@
   Autor: Marcelo Henrique Moraes
   E-mail: marceloh220@hotmail.com
   Data: 5, abr. 2017
-  Ultima Revisao: 20, mai. 2017
-  Revisao Atual: 27, mai. 2017
+  Ultima Revisao: 16, jun. 2017
+  Revisao Atual: 3, ago. 2017
   Copyright (c) 2017 Marcelo Henrique Moraes
 
   Projeto Casa Sustentavel: Climatizador de AR
@@ -79,6 +79,7 @@ void desligamento();
 void fechamento();
 
 //interrupcoes do sistema
+void timer0OVF();               //interrupcao de overlow do timer 0
 void motorPasso();              //interrupcao de overflow do timer 2
 void resetWDT();                //interrupcao do WDT
 void desligamentoProgramado();  //interrupcao int0 anexada quando o sistema liga
@@ -132,16 +133,17 @@ const uint8_t graus[8] PROGMEM =
 
 //Para temporizacoes
 typedef struct Time {
-  uint32_t ms2, ms10, ms60, ms500, s1, s30, m1, m5;
-  uint32_t testes;//para testes gerais com temporizacoes
+  uint32_t ms2, ms10, ms60, ms500, s1, s2, s30, m1, m5;
+  uint32_t millis;  //para testes gerais com temporizacoes
 } timer_t;
 timer_t temporizacao;
 
 //Para medir volume de agua no reservatorio
 class Volume {
   public:
-    float     milimetros, centimetros, metros;
-    float     litros, centilitros, mililitros;
+    float     milimetros, metros;
+    float     mmCubico, mCubico;
+    float     mililitros, litros;
     uint8_t   testes;
     uint8_t   overflow;
     uint32_t  pulso;
@@ -275,7 +277,13 @@ void setup() {
   wdt.attach(resetWDT);   //anexa a funcao "resetWDT()"  na interrupcao do WDT
   wdt.enable();           //habilita o WDT
 
+  //habilita o desligamento pelo botao LIGA/DESLIGA
   external.attach(INT0, FALLING, desligamentoProgramado);
+
+  //configuracao do timer 0  para gerar constantes de tempo de 50us
+  timer.config(NORMAL);           //timer0 em modo normal de 8 bits, sem pwm
+  timer.period(50);               //overflow do timer0 configurado para ocorrer a cada 50us
+  timer.attach(OVF, timer0OVF);  //funcao timer0_OVF anexada na interrupcao de overflow do timer0
 
   delay.ms(2000); //aguarda um tempo para a apresentacao
   medirVolume();  //Atualiza a leitura de volume do reservatorio
@@ -295,30 +303,31 @@ void loop() {
   */
 
   //Tarefa realizada a cada 10 milisegundo
-  if ( (timer.millis() - temporizacao.ms10) >= 10) {  //Testa se passou 10ms
+  if ( (temporizacao.millis - temporizacao.ms10) >= 10) {  //Testa se passou 10ms
 
     temperatura.atualiza();                           //Atualiza as leituras de temperatura
+
     acionamentos();                                   //Chama funcao de acoes de controle
     mostra[mostraPTR]();                              //Chama funcao alocada na posicao do ponteiro mostra
 
-    temporizacao.ms10 = timer.millis();               //Salva o tempo atual para nova tarefa apos 10ms
+    temporizacao.ms10 = temporizacao.millis;               //Salva o tempo atual para nova tarefa apos 10ms
 
   }//fim da tarefa de 10ms
 
   //Tarefa realizada a cada 60 milisegundo
-  if ( (timer.millis() - temporizacao.ms60) >= 60) {  //Testa se passou 60ms
+  if ( (temporizacao.millis - temporizacao.ms60) >= 60) {  //Testa se passou 60ms
 
     teclado.liberar();                                //Libera o teclado para nova leitura, o tempo de 60ms garante o debounce das teclado
 
     if (digital.ifset(encoderButton))  //Se o botao do encoder foi solto
       teste.clear(travaEnco);          //Destrava a leitura do botao
 
-    temporizacao.ms60 = timer.millis();               //Salva o tempo atual para nova tarefa apos 60ms
+    temporizacao.ms60 = temporizacao.millis;               //Salva o tempo atual para nova tarefa apos 60ms
 
   }//fim da tarefa de 60ms
 
   //Tarefa realizada a cada 500 milisegundo
-  if ( (timer.millis() - temporizacao.ms500) >= 500) {  //Testa se passou 500ms
+  if ( (temporizacao.millis - temporizacao.ms500) >= 500) {  //Testa se passou 500ms
 
     //verifica se foi requerido entrada em modo de baixo consumo
     if (teste.ifset(progOFF)) {
@@ -328,14 +337,23 @@ void loop() {
 
     relogio.sinalizar();  //Sinaliza ajuste do relogio com blink da configuracao selecionada
 
-    temporizacao.ms500 = timer.millis();  //Salva o tempo atual para nova tarefa apos 500ms
+    temporizacao.ms500 = temporizacao.millis;  //Salva o tempo atual para nova tarefa apos 500ms
 
   }//fim da tarefa de 500ms
 
   //Tarefa realizada a cada 1 segundo
-  if ( (timer.millis() - temporizacao.s1) >= 1000) {  //Testa se passou 1 segundo
+  if ( (temporizacao.millis - temporizacao.s1) >= 1000) {  //Testa se passou 1 segundo
 
     medirVolume();  //Atualiza a leitura de volume do reservatorio
+
+    controle.sinalizar(); //chama a sinalizacao para o nivel de agua
+
+    temporizacao.s1 = temporizacao.millis; //Salva o tempo atual para nova tarefa apos 1s
+
+  }//fim da tarefa de 1s
+
+  //Tarefa realizada a cada 2 segundos
+  if ( (temporizacao.millis - temporizacao.s2) >= 2000) {  //Testa se passou 2 segundos
 
     //verifica se a palheta horizontal esta aberta enquanto a ventilacao principal esta ligada
     //ligar a ventilacao sem que tenha uma abertura para passagem do vento aumenta a carga do motor
@@ -347,40 +365,38 @@ void loop() {
 
     }//fim da verificacao de abertura da palheta horizontais
 
-    controle.sinalizar(); //chama a sinalizacao para o nivel de agua
+    temporizacao.s2 = temporizacao.millis; //Salva o tempo atual para nova tarefa apos 2s
 
-    temporizacao.s1 = timer.millis(); //Salva o tempo atual para nova tarefa apos 1s
-
-  }//fim da tarefa de 1s
+  }//fim da tarefa de 2s
 
   //Tarefa realizada a cada 30 segundo
-  if ( (timer.millis() - temporizacao.s30) >= 30000) {  //Testa se passou 30 segundo
+  if ( (temporizacao.millis - temporizacao.s30) >= 30000) {  //Testa se passou 30 segundo
 
     //posiciona o menu para mostrar temperatura
     relogio.posicao(0); //zera o posicionamento de configuracao do relogio
     mostraPTR = 0;      //posiciona ponteiro para mostrar temperaturas
 
-    temporizacao.s30 = timer.millis();  //Salva o tempo atual para nova tarefa apos 30s
+    temporizacao.s30 = temporizacao.millis;  //Salva o tempo atual para nova tarefa apos 30s
 
   }//fim da tarefa de 30s
 
   //Tarefa realizada a cada 1 minuto
-  if ( (timer.millis() - temporizacao.m1) >= 60000) { //Testa se passou 1min
+  if ( (temporizacao.millis - temporizacao.m1) >= 60000) { //Testa se passou 1min
 
     display.background(OFF);  //desliga a luz de fundo do display
 
-    temporizacao.s30 = timer.millis();  //Salva o tempo atual para nova tarefa apos 1min
+    temporizacao.s30 = temporizacao.millis;  //Salva o tempo atual para nova tarefa apos 1min
 
   }//fim da tarefa de 1min
 
   //Tarefa realizada a cada 5min
-  if ( (timer.millis() - temporizacao.m5) >= 300000) {  //Testa se passou 5min
+  if ( (temporizacao.millis - temporizacao.m5) >= 300000) {  //Testa se passou 5min
 
     //se a ventilacao estiver desligada, desliga o sistema
     if (controle.velocidade() == 0)
       desligamento();
 
-    temporizacao.m5 = timer.millis(); //Salva o tempo atual para nova tarefa apos 5min
+    temporizacao.m5 = temporizacao.millis; //Salva o tempo atual para nova tarefa apos 5min
 
   }//fim da tarefa de 5min
 
@@ -390,13 +406,13 @@ void loop() {
     display.background(ON);
 
     //impede que as tarefas de 30 segundos, 1 minuto e 5 minutos sejam realizadas
-    temporizacao.s30 = timer.millis();  //impede a mudança do display
-    temporizacao.m1 = timer.millis();   //impede o desligamento da luz de fundo do display
-    temporizacao.m5 = timer.millis();   //impede que o sistema seja desligado mesmo com a ventilacao desligada
+    temporizacao.s30 = temporizacao.millis;  //impede a mudança do display
+    temporizacao.m1 = temporizacao.millis;   //impede o desligamento da luz de fundo do display
+    temporizacao.m5 = temporizacao.millis;   //impede que o sistema seja desligado mesmo com a ventilacao desligada
 
   }//fim dos testes de manutencao e acao de teclado detectado
 
-  wdt.clear();  //Limpa o watch dog timer (WDT) para evitar reset
+  wdt.clear();  //Limpa o watch dog temporizacao (WDT) para evitar reset
 
   if ( teste.ifset(horizontal) )  //se a flag de erro da movimentacao das palhetas horizontais estiver setada
     erro(erroHorizontal);         //apresenta no teclado que houve o erro

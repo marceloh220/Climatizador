@@ -33,11 +33,11 @@
 
 //Funcao que mostra no display o nivel de agua
 void mostraNivel() {
-  display.set(0, 0);                            //Posiciona cursor na coluna 0 / linha 0
-  display.print("Nivel de Agua     ");
-  display.set(0, 1);                            //Posiciona cursor na coluna 0 / linha 1
-  display.print(reservatorio.mililitros);        //Mostra nivel de agua calculado
-  display.print(" mL           ");
+  display.set(0, 0);                   //Posiciona cursor na coluna 0 / linha 0
+  display.print("Nivel de Agua     "); 
+  display.set(0, 1);                   //Posiciona cursor na coluna 0 / linha 1
+  display.print(reservatorio.litros);  //Mostra nivel de agua calculado
+  display.print(" L           ");    
 }//fim da funcao mostraNivel
 
 #endif

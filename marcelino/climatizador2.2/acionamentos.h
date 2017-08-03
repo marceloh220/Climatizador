@@ -37,8 +37,13 @@ void acionamentos() {
   uint8_t tecla = teclado.leitura();  //Verifica a tecla pressionada
   uint8_t elem = tamVet(mostra) - 1;	//verifica a quantidade de elementos no vetor
 
-  if (tecla != 0)         //Se alguma tecla pressionada
-    teste.set(acteclado); //Indica acao do teclado
+  //  serial.print("Tecla pressionada: ");
+  //  serial.println(tecla);
+
+  if (tecla != 0) {        //Se alguma tecla pressionada
+    teste.set(acteclado);  //Indica acao do teclado
+    teste.clear(progOFF);  //Desativa a flag de desligamento programado
+  }
 
   if ( tecla == 1 ) {   //Se pressionada tecla 1
     relogio.posicao(0); //Reinicia o posicionamento de ajuste de hora
@@ -114,6 +119,7 @@ void acionamentos() {
     controle.reles(geradorAnion, HIGH);  //Se ventilacao principal ligada, liga gerador de anion
   else
     controle.reles(geradorAnion, LOW);  //Se ventilacao principal desligada, desliga o gerador de anion
+
 
 }//fim da funcao acao
 

@@ -161,7 +161,7 @@ public:
 			Reles::troca(pinos[7]);				//Pisca sinalizacao
 			
 		else 									//Se nao		
-			Reles::desliga(pinos[7]);			//Desliga sinalizacao
+			Reles::desliga(pinos[7]);				//Desliga sinalizacao
 			
 	}//fim do metodo sinalizar
 

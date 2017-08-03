@@ -55,7 +55,7 @@
       SLEEP: Modo de baixo consumo em POWERDOWN, com CPU e todos os perifericos desligados (exceto INT0)
       INT0: Interrupcao externa, coloca e tira a CPU do modo de baixo consumo
       Timer 0: Gera temporizacoes para o sistema, maior parte do sistema opera sem rotinas de atrazos
-      Timer 1: Em uma versao futura ira realizar a captura da largura de pulso para medicao de nivel do reservatorio
+      Timer 1: Realiza a captura da largura de pulso so sensor utrassonico de medida de nivel de agua
       Timer 2: Gera constante de tempo para operacao do motor de passo e leitura do encoder rotativo
       ADC: Conversor Analogico Digital, realiza a leitura de A2 (sensor de temperatura) e A3 (teclado)
       TWI: Comunicacao a 2 fios para controle de atuadores e display LCD 16x2 com CI PCF8574, leitura do relogio de tempo real e temperatura com CI DS3231, Bit Rate 400kHz.
@@ -84,11 +84,11 @@
 // escalas em milimetros e mililitros, alterar escalas em 'medirVolume.h'
 
 //volume minimo e medio para o reservatorio
-#define nivelMIN                  100
-#define nivelMED                  130
+#define nivelMIN                  2
+#define nivelMED                  2.8
 
-//caracteristicas do reservatorio
-#define alturaReservatorio        762
+//caracteristicas do reservatorio (mm)
+#define alturaReservatorio        207.75
 #define comprimentoReservatorio   255
 #define larguraReservatorio       210
 
@@ -103,7 +103,7 @@
 #define pinLM35             A2  //pino de leitura do sensor de temperatura LM35
 
 //pinos do sensor de nivel de agua do reservatorio
-#define pinUltrason          9  //pino trigger do sensor de nivel ultrassonico
+#define pinTrigger           9  //pino trigger do sensor de nivel ultrassonico
 #define pinEcho              8  //pino de echo do sensor de nivel ultrassonico
 
 //pinos de leitura do encoder
@@ -120,6 +120,8 @@
 
 #define encoderEscala       20  //escala do encoder, muda o passo com que o encoder fecha ou abre as paletas de ventilacao horizontais
 #define tempoUsMotorPasso 5000  //tempo da movimentacao do motor de passo em microsegundos
+#define aberMIN            300  //minima abertura da ventilacao para acionamento do ventilador
+#define aberMAX           1300  //maxima abertura da ventilacao
 
 
 // === Pinos do Relay ===

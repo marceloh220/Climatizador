@@ -41,24 +41,23 @@ void capturaVolume() {
   //se detectado borda de subida
   if (captura.rising()) {
 
-    //limpa o temporizador de captura
-    captura.timer(0);
     //configura a o hardware para capturar a borda de descida
     captura.attach(CAPT, FALLING, capturaVolume);
+
+    captura.timer(0);     //limpa o temporizador de captura
+    captura.prescale(1);  //configura o prescaler da captura em 1/1
 
   }//fim do teste de borda de subida
 
   //se nao, foi detectado uma borda de descida
   else {
 
+    captura.prescale(OFF);  //desliga o temporizador de captura
+    captura.detach(OVF);    //desanexa o overflow da interrupcao
+    captura.detach(CAPT);   //desanexa a captura da interrupcao
+
     //salva o valor capturado
     reservatorio.pulso = captura.capt() + reservatorio.overflow * 65535;
-
-    //limpa os overflows do temporizador para a proxima captura
-    reservatorio.overflow = 0;
-
-    captura.detach(OVF);  //desanexa o overflow da interrupcao
-    captura.detach(CAPT);  //desanexa a captura da interrupcao
 
   }//fim do teste de borda de descida
 
@@ -69,19 +68,24 @@ void medirVolume() {
 
   // == prepara o hardware de captura ===
   captura.config(NORMAL);  //configura o temporizador de captura em modo normal (16bits do timer 1)
-  captura.prescale(1);     //configura o prescaler da captura em 1/1
 
-  //anexa a funcao capturaVolume na interrupcao de captura do timer 1
-  captura.attach(CAPT, RISING, capturaVolume);
+  //limpa os overflows do temporizador para a proxima captura
+  reservatorio.overflow = 0;
+
+  //anexa a funcao capturaOVF na interrupcao de overflow do timer 1
   captura.attach(OVF, capturaOVF);
+  //anexa a funcao capturaVolume na interrupcao de captura do timer 1 com deteccao da borda de subida
+  captura.attach(CAPT, RISING, capturaVolume);
 
   // === aciona sensor ultrassom ===
-  digital.mode(pinUltrason, OUTPUT);
-  digital.write(pinUltrason, OFF);
+  digital.mode(pinTrigger, OUTPUT);
+  digital.mode(pinEcho, INPUT);
+
+  digital.write(pinTrigger, OFF);
   delay.us(2);
-  digital.write(pinUltrason, ON);
-  delay.us(15);
-  digital.write(pinUltrason, OFF);
+  digital.write(pinTrigger, ON);
+  delay.us(10);
+  digital.write(pinTrigger, OFF);
 
   //espera o final da captura
   do {
@@ -93,25 +97,22 @@ void medirVolume() {
 
   // == calculo das distancias do sensor ultrassonico ===
   /*
+
+    tic = prescale / F_CPU
     Distancia = Largura do Pulso * Velocidade do Som / 2
 
-    Largura do Pulso = 1/F_CPU * prescale * captura
+    Largura do Pulso = prescale * captura / F_CPU
 
-    Distancia = 1/F_CPU * prescale * captura * Velocidade do Som / 2
-    Distancia = captura * 1/16e6[s] * 1 * 340.29[m/s] / 2
+    Distancia = prescale * captura * Velocidade do Som / ( 2 * F_CPU )
+    Distancia = captura * 1 * 340.29[m/s] / ( 2 * 16e6[s] )
     Distancia = captura * 1.06340625e-05 [m]
+
   */
 
   reservatorio.milimetros = reservatorio.pulso * 0.0106340625;
-  serial.print("Distancia: ");
-  serial.print(reservatorio.milimetros);
-  serial.println(" mm");
-
-  //cm = mm * 10e-2
-  reservatorio.centimetros = reservatorio.milimetros * 1e-2;
 
   //m = mm * 10e-3
-  reservatorio.metros = reservatorio.milimetros * 1e-3;
+  reservatorio.metros = reservatorio.milimetros / 1000;
 
   //subtrai a altura do reservatorio da distancia medida pelo sensor
   float alturaAgua = alturaReservatorio - reservatorio.milimetros;
@@ -121,15 +122,31 @@ void medirVolume() {
     alturaAgua = 0;
 
   //Calcula o volume do reservatorio com base nas caracteristicas fisicas
-  reservatorio.mililitros = alturaAgua * comprimentoReservatorio * larguraReservatorio;
-  reservatorio.centilitros = reservatorio.mililitros / 10.0;
-  reservatorio.litros = reservatorio.mililitros / 1000.0;
+  reservatorio.mmCubico = alturaAgua * comprimentoReservatorio * larguraReservatorio;
+  reservatorio.mCubico = reservatorio.mmCubico / 1000.0;
 
-  if ( reservatorio.mililitros < nivelMIN )		    //Se o nivel de agua esta abaixo do predeterminado
-    controle.reservatorio(NBAIXO);			          //Indica nivel baixo do reservatorio
+  //Comvercao para litros
+  reservatorio.mililitros = reservatorio.mCubico;
+  reservatorio.litros = reservatorio.mCubico / 1000;
+  
+  serial.print("Volume do resevatório: ");
+  serial.print(reservatorio.litros);
+  serial.print(" L");
 
-  else if ( reservatorio.mililitros > nivelMED )	//Se o nivel de agua esta acima do predeterminado
-    controle.reservatorio(NALTO);			            //Indica nivel alto do reservatorio
+  if ( reservatorio.litros < nivelMIN )	{  //Se o nivel de agua esta abaixo do predeterminado
+    
+    controle.reservatorio(NBAIXO);  //Indica nivel baixo do reservatorio
+    serial.println(" BAIXO");
+    serial.println("Abasteça o reservatório com água");
+    
+  }
+
+  else if ( reservatorio.litros > nivelMED ) {  //Se o nivel de agua esta acima do predeterminado
+    
+    controle.reservatorio(NALTO);  //Indica nivel alto do reservatorio
+    serial.println(" BOM");
+    
+  }
 
 }//fim da funcao medirVolume
 
