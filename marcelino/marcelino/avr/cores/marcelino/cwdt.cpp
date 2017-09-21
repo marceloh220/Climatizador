@@ -1,6 +1,6 @@
 #include "cwdt.h"
 
-void (*wdtARRAY)(void) = none;
+VoidFuncPtr wdtARRAY = none;
 
 void WDT::timeout(uint8_t time){
 	cli();
@@ -12,7 +12,7 @@ void WDT::timeout(uint8_t time){
 }
 
 void WDT::config(uint8_t mode) {
-	this->_mode = mode;
+	_mode = mode;
 	WDTCSR &= ~( (1<<WDE)|(1<<WDIE) );
 	if(mode==INTERRUPT)
 		WDTCSR |= (1<<WDIE);
@@ -22,7 +22,7 @@ void WDT::config(uint8_t mode) {
 		WDTCSR = (1<<WDE)|(1<<WDIE);
 }
 
-void WDT::attach(void (*funct)(void)) {
+void volatile WDT::attach(void (*funct)(void)) {
 	wdtARRAY = funct;
 	sei();
 }

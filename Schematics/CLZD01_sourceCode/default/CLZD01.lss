@@ -1,0 +1,388 @@
+
+CLZD01.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000001c8  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .bss          000000d1  00800060  00800060  0000023c  2**0
+                  ALLOC
+  2 .debug_aranges 00000020  00000000  00000000  0000023c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  3 .debug_pubnames 0000007e  00000000  00000000  0000025c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_info   000001c5  00000000  00000000  000002da  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_abbrev 0000012e  00000000  00000000  0000049f  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_line   00000222  00000000  00000000  000005cd  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_frame  00000060  00000000  00000000  000007f0  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_str    000000ea  00000000  00000000  00000850  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	0e c0       	rjmp	.+28     	; 0x1e <__ctors_end>
+   2:	2a c0       	rjmp	.+84     	; 0x58 <__vector_1>
+   4:	1c c0       	rjmp	.+56     	; 0x3e <__bad_interrupt>
+   6:	1b c0       	rjmp	.+54     	; 0x3e <__bad_interrupt>
+   8:	1a c0       	rjmp	.+52     	; 0x3e <__bad_interrupt>
+   a:	1a c0       	rjmp	.+52     	; 0x40 <__vector_5>
+   c:	18 c0       	rjmp	.+48     	; 0x3e <__bad_interrupt>
+   e:	17 c0       	rjmp	.+46     	; 0x3e <__bad_interrupt>
+  10:	16 c0       	rjmp	.+44     	; 0x3e <__bad_interrupt>
+  12:	15 c0       	rjmp	.+42     	; 0x3e <__bad_interrupt>
+  14:	14 c0       	rjmp	.+40     	; 0x3e <__bad_interrupt>
+  16:	13 c0       	rjmp	.+38     	; 0x3e <__bad_interrupt>
+  18:	12 c0       	rjmp	.+36     	; 0x3e <__bad_interrupt>
+  1a:	11 c0       	rjmp	.+34     	; 0x3e <__bad_interrupt>
+  1c:	10 c0       	rjmp	.+32     	; 0x3e <__bad_interrupt>
+
+0000001e <__ctors_end>:
+  1e:	11 24       	eor	r1, r1
+  20:	1f be       	out	0x3f, r1	; 63
+  22:	cf e5       	ldi	r28, 0x5F	; 95
+  24:	d1 e0       	ldi	r29, 0x01	; 1
+  26:	de bf       	out	0x3e, r29	; 62
+  28:	cd bf       	out	0x3d, r28	; 61
+
+0000002a <__do_clear_bss>:
+  2a:	11 e0       	ldi	r17, 0x01	; 1
+  2c:	a0 e6       	ldi	r26, 0x60	; 96
+  2e:	b0 e0       	ldi	r27, 0x00	; 0
+  30:	01 c0       	rjmp	.+2      	; 0x34 <.do_clear_bss_start>
+
+00000032 <.do_clear_bss_loop>:
+  32:	1d 92       	st	X+, r1
+
+00000034 <.do_clear_bss_start>:
+  34:	a1 33       	cpi	r26, 0x31	; 49
+  36:	b1 07       	cpc	r27, r17
+  38:	e1 f7       	brne	.-8      	; 0x32 <.do_clear_bss_loop>
+  3a:	6f d0       	rcall	.+222    	; 0x11a <main>
+  3c:	c3 c0       	rjmp	.+390    	; 0x1c4 <_exit>
+
+0000003e <__bad_interrupt>:
+  3e:	e0 cf       	rjmp	.-64     	; 0x0 <__vectors>
+
+00000040 <__vector_5>:
+
+//variavel para envio de dados
+uint8_t interadorEnvio;		//interador para envio dos dados
+
+//interrupcao de pevencao de erros no envio
+ISR(TIMER0_OVF_vect) {		//se o mestre travar a comunicacao por um tempo muito longo
+  40:	1f 92       	push	r1
+  42:	0f 92       	push	r0
+  44:	0f b6       	in	r0, 0x3f	; 63
+  46:	0f 92       	push	r0
+  48:	11 24       	eor	r1, r1
+   
+	interadorEnvio = 0;		//reinicia a transmissao no proximo clock
+  4a:	10 92 66 00 	sts	0x0066, r1
+   
+}//fim da interrupcao de prevencao de erros no envio
+  4e:	0f 90       	pop	r0
+  50:	0f be       	out	0x3f, r0	; 63
+  52:	0f 90       	pop	r0
+  54:	1f 90       	pop	r1
+  56:	18 95       	reti
+
+00000058 <__vector_1>:
+
+//interrupcao de envio
+ISR(INT0_vect) {		//interrupcao INT0 AVR
+  58:	1f 92       	push	r1
+  5a:	0f 92       	push	r0
+  5c:	0f b6       	in	r0, 0x3f	; 63
+  5e:	0f 92       	push	r0
+  60:	11 24       	eor	r1, r1
+  62:	2f 93       	push	r18
+  64:	8f 93       	push	r24
+  66:	9f 93       	push	r25
+
+	nop();				//espera 1 ciclo (125ns)
+  68:	00 00       	nop
+   
+	if (high()) {		//teste de clock contra ruidos
+  6a:	b2 9b       	sbis	0x16, 2	; 22
+  6c:	35 c0       	rjmp	.+106    	; 0xd8 <__vector_1+0x80>
+	   
+		TCNT0 = 0;		//quando uma transmissao esta em andamento normal envita o overflow do timer0
+  6e:	12 be       	out	0x32, r1	; 50
+		//variaveis para envio, mantidas em cache para acesso rapido em AVR
+		static uint16_t volatile envio;	//cache para envio de dados
+		static uint8_t paridade;		//para calculo de paridade
+	   
+		//teste de primeiro envio
+		if (interadorEnvio == 0)	//se primeiro envio
+  70:	20 91 66 00 	lds	r18, 0x0066
+  74:	22 23       	and	r18, r18
+  76:	49 f4       	brne	.+18     	; 0x8a <__vector_1+0x32>
+			envio = media;			//carrega temperatura medida no cache de envio
+  78:	80 91 67 00 	lds	r24, 0x0067
+  7c:	90 91 68 00 	lds	r25, 0x0068
+  80:	90 93 65 00 	sts	0x0065, r25
+  84:	80 93 64 00 	sts	0x0064, r24
+  88:	02 c0       	rjmp	.+4      	; 0x8e <__vector_1+0x36>
+		
+		//teste de 10 bits enviados
+		if ( interadorEnvio < 10) {	//se nao foi enviado os 10 bits
+  8a:	2a 30       	cpi	r18, 0x0A	; 10
+  8c:	e0 f4       	brcc	.+56     	; 0xc6 <__vector_1+0x6e>
+		   
+			if (envio & (1 << 9)) {	//verifica se o bit mais significativo vale 1
+  8e:	80 91 64 00 	lds	r24, 0x0064
+  92:	90 91 65 00 	lds	r25, 0x0065
+  96:	91 ff       	sbrs	r25, 1
+  98:	07 c0       	rjmp	.+14     	; 0xa8 <__vector_1+0x50>
+				data();				//se sim, envia nivel logico alto no pino de dados
+  9a:	c1 9a       	sbi	0x18, 1	; 24
+				paridade++;			//incrementa a paridade
+  9c:	80 91 63 00 	lds	r24, 0x0063
+  a0:	8f 5f       	subi	r24, 0xFF	; 255
+  a2:	80 93 63 00 	sts	0x0063, r24
+  a6:	01 c0       	rjmp	.+2      	; 0xaa <__vector_1+0x52>
+			}
+			
+			else ndata();		//se nao, envia nivel logico baixo no pino de dados
+  a8:	c1 98       	cbi	0x18, 1	; 24
+			   
+			envio = envio << 1;	//desloca o dado para enviar o proximo bit
+  aa:	80 91 64 00 	lds	r24, 0x0064
+  ae:	90 91 65 00 	lds	r25, 0x0065
+  b2:	88 0f       	add	r24, r24
+  b4:	99 1f       	adc	r25, r25
+  b6:	90 93 65 00 	sts	0x0065, r25
+  ba:	80 93 64 00 	sts	0x0064, r24
+			interadorEnvio++;	//incrementa o interador de envio
+  be:	2f 5f       	subi	r18, 0xFF	; 255
+  c0:	20 93 66 00 	sts	0x0066, r18
+  c4:	09 c0       	rjmp	.+18     	; 0xd8 <__vector_1+0x80>
+			
+		}//fim do teste de 10 bits enviados
+		
+		//calculo de paridade
+		else {							//se foi enviado os 10 bits
+			if ((paridade % 2)) data();	//se paridade for par, o decimo segundo bit sera 0
+  c6:	80 91 63 00 	lds	r24, 0x0063
+  ca:	80 ff       	sbrs	r24, 0
+  cc:	02 c0       	rjmp	.+4      	; 0xd2 <__vector_1+0x7a>
+  ce:	c1 9a       	sbi	0x18, 1	; 24
+  d0:	01 c0       	rjmp	.+2      	; 0xd4 <__vector_1+0x7c>
+			else ndata();				//se paridade for impar, o decimo segundo bit sera 1
+  d2:	c1 98       	cbi	0x18, 1	; 24
+			interadorEnvio = 0;			//reinicia o interador no final do envio dos 10 bits
+  d4:	10 92 66 00 	sts	0x0066, r1
+			
+		}//fim do calculo de paridade
+		
+	}//fim do teste de clock contra ruidos
+	
+}//fim da interrupcao de envio
+  d8:	9f 91       	pop	r25
+  da:	8f 91       	pop	r24
+  dc:	2f 91       	pop	r18
+  de:	0f 90       	pop	r0
+  e0:	0f be       	out	0x3f, r0	; 63
+  e2:	0f 90       	pop	r0
+  e4:	1f 90       	pop	r1
+  e6:	18 95       	reti
+
+000000e8 <inicializacao>:
+	return 0;
+	
+}//fim da funcao principal
+
+//funcao de inicializacao
+void inicializacao() {
+  e8:	e9 e6       	ldi	r30, 0x69	; 105
+  ea:	f0 e0       	ldi	r31, 0x00	; 0
+   
+	//limpa o cache de leituras anteriores
+	int i;
+	for (i = 0; i < maxRead; i++)
+		lidos[i] = 0;
+  ec:	11 92       	st	Z+, r1
+  ee:	11 92       	st	Z+, r1
+//funcao de inicializacao
+void inicializacao() {
+   
+	//limpa o cache de leituras anteriores
+	int i;
+	for (i = 0; i < maxRead; i++)
+  f0:	81 e0       	ldi	r24, 0x01	; 1
+  f2:	e1 33       	cpi	r30, 0x31	; 49
+  f4:	f8 07       	cpc	r31, r24
+  f6:	d1 f7       	brne	.-12     	; 0xec <inicializacao+0x4>
+		lidos[i] = 0;
+
+	//comparador interno
+	ACSR = bv(ACD);	//desabilita comparador interno
+  f8:	80 e8       	ldi	r24, 0x80	; 128
+  fa:	88 b9       	out	0x08, r24	; 8
+
+	//conversor analogico/digital
+	DIDR0 = bv(ADC3D);				//desabilita pino diginal em ADC3(PB3)
+  fc:	88 e0       	ldi	r24, 0x08	; 8
+  fe:	84 bb       	out	0x14, r24	; 20
+	ADMUX = bv(REFS2)|(3<<REFS0)|3;	//conversor analogico lendo pino ADC3(PB3), tensao de referencia no pino Aref(PB0)
+ 100:	83 ed       	ldi	r24, 0xD3	; 211
+ 102:	87 b9       	out	0x07, r24	; 7
+
+	//interrupcao para transmissao
+	MCUCR = bv(ISC01) | bv(ISC00);	//configura interrupcao externa INT para deteccao da borda de subida
+ 104:	83 e0       	ldi	r24, 0x03	; 3
+ 106:	85 bf       	out	0x35, r24	; 53
+	GIMSK = bv(INT0);				//habilita interrupcao externa INT
+ 108:	80 e4       	ldi	r24, 0x40	; 64
+ 10a:	8b bf       	out	0x3b, r24	; 59
+
+	//timer0 para evitar bloqueio da transmissao
+	TCCR0B = 2;			//prescale 1/8, overflow em (1/8e6*256*8=256us)
+ 10c:	82 e0       	ldi	r24, 0x02	; 2
+ 10e:	83 bf       	out	0x33, r24	; 51
+	TIMSK = bv(TOIE0);	//interrupcao no overflow do timer 0
+ 110:	89 bf       	out	0x39, r24	; 57
+
+	//pinos de comunicacao
+	ndata();		//coloca nivel logico baixo no pino de dados
+ 112:	c1 98       	cbi	0x18, 1	; 24
+	DDRB = bv(PB1);	//configura pino serial de saida de dados
+ 114:	87 bb       	out	0x17, r24	; 23
+	
+	//interrupcoes globais
+	sei();		//habilita interrupcoes globais
+ 116:	78 94       	sei
+
+}//fim da funcao de inicializacao
+ 118:	08 95       	ret
+
+0000011a <main>:
+	}//fim do teste de clock contra ruidos
+	
+}//fim da interrupcao de envio
+
+//funcao principal
+int main() {
+ 11a:	0f 93       	push	r16
+ 11c:	1f 93       	push	r17
+	inicializacao();
+ 11e:	e4 df       	rcall	.-56     	; 0xe8 <inicializacao>
+ 120:	10 91 60 00 	lds	r17, 0x0060
+}//fim da funcao de inicializacao
+
+//funcao de leitura adc
+uint16_t leitura() {
+   
+	ADCSRA = bv(ADEN)|bv(ADSC)|3;	//habilita conversor analogico e inicia conversao
+ 124:	03 ec       	ldi	r16, 0xC3	; 195
+ 126:	06 b9       	out	0x06, r16	; 6
+	while (ADCSRA & bv(ADSC));		//aguarda final da conversao
+ 128:	36 99       	sbic	0x06, 6	; 6
+ 12a:	fe cf       	rjmp	.-4      	; 0x128 <main+0xe>
+	return ADC;						//retorna valor lido no sensor
+ 12c:	44 b1       	in	r20, 0x04	; 4
+ 12e:	55 b1       	in	r21, 0x05	; 5
+		static uint16_t volatile soma;	//acumulador das leituras analogicas
+		static uint8_t  atual;			//interador para o espaco de leituras anteriores
+	
+	        //algoritimo de media movel
+	        uint16_t aux = leitura();	//realiza a leitura do sensor analogico
+		soma -= lidos[atual];			//retira do acumulador uma leitura antiga
+ 130:	20 91 61 00 	lds	r18, 0x0061
+ 134:	30 91 62 00 	lds	r19, 0x0062
+ 138:	e1 2f       	mov	r30, r17
+ 13a:	f0 e0       	ldi	r31, 0x00	; 0
+ 13c:	ee 0f       	add	r30, r30
+ 13e:	ff 1f       	adc	r31, r31
+ 140:	e7 59       	subi	r30, 0x97	; 151
+ 142:	ff 4f       	sbci	r31, 0xFF	; 255
+ 144:	80 81       	ld	r24, Z
+ 146:	91 81       	ldd	r25, Z+1	; 0x01
+ 148:	28 1b       	sub	r18, r24
+ 14a:	39 0b       	sbc	r19, r25
+ 14c:	30 93 62 00 	sts	0x0062, r19
+ 150:	20 93 61 00 	sts	0x0061, r18
+		soma += aux;					//faz o somatorio da nova leitura
+ 154:	80 91 61 00 	lds	r24, 0x0061
+ 158:	90 91 62 00 	lds	r25, 0x0062
+ 15c:	84 0f       	add	r24, r20
+ 15e:	95 1f       	adc	r25, r21
+ 160:	90 93 62 00 	sts	0x0062, r25
+ 164:	80 93 61 00 	sts	0x0061, r24
+		lidos[atual] = aux;				//salva no espaco de leituras a leitura atual
+ 168:	51 83       	std	Z+1, r21	; 0x01
+ 16a:	40 83       	st	Z, r20
+		atual++;						//incrementa o interador de leitura
+ 16c:	1f 5f       	subi	r17, 0xFF	; 255
+	   
+		media = soma / maxRead;		//tira a media das leituras
+ 16e:	80 91 61 00 	lds	r24, 0x0061
+ 172:	90 91 62 00 	lds	r25, 0x0062
+ 176:	64 e6       	ldi	r22, 0x64	; 100
+ 178:	70 e0       	ldi	r23, 0x00	; 0
+ 17a:	10 d0       	rcall	.+32     	; 0x19c <__udivmodhi4>
+ 17c:	70 93 68 00 	sts	0x0068, r23
+ 180:	60 93 67 00 	sts	0x0067, r22
+	   
+		if (atual == maxRead)		//se o interador chegou no final do espaco de leituras
+ 184:	14 36       	cpi	r17, 0x64	; 100
+ 186:	79 f6       	brne	.-98     	; 0x126 <main+0xc>
+ 188:	10 e0       	ldi	r17, 0x00	; 0
+ 18a:	cd cf       	rjmp	.-102    	; 0x126 <main+0xc>
+
+0000018c <leitura>:
+}//fim da funcao de inicializacao
+
+//funcao de leitura adc
+uint16_t leitura() {
+   
+	ADCSRA = bv(ADEN)|bv(ADSC)|3;	//habilita conversor analogico e inicia conversao
+ 18c:	83 ec       	ldi	r24, 0xC3	; 195
+ 18e:	86 b9       	out	0x06, r24	; 6
+	while (ADCSRA & bv(ADSC));		//aguarda final da conversao
+ 190:	36 99       	sbic	0x06, 6	; 6
+ 192:	fe cf       	rjmp	.-4      	; 0x190 <leitura+0x4>
+	return ADC;						//retorna valor lido no sensor
+ 194:	24 b1       	in	r18, 0x04	; 4
+ 196:	35 b1       	in	r19, 0x05	; 5
+	
+}//fim da funcao de leitura adc
+ 198:	c9 01       	movw	r24, r18
+ 19a:	08 95       	ret
+
+0000019c <__udivmodhi4>:
+ 19c:	aa 1b       	sub	r26, r26
+ 19e:	bb 1b       	sub	r27, r27
+ 1a0:	51 e1       	ldi	r21, 0x11	; 17
+ 1a2:	07 c0       	rjmp	.+14     	; 0x1b2 <__udivmodhi4_ep>
+
+000001a4 <__udivmodhi4_loop>:
+ 1a4:	aa 1f       	adc	r26, r26
+ 1a6:	bb 1f       	adc	r27, r27
+ 1a8:	a6 17       	cp	r26, r22
+ 1aa:	b7 07       	cpc	r27, r23
+ 1ac:	10 f0       	brcs	.+4      	; 0x1b2 <__udivmodhi4_ep>
+ 1ae:	a6 1b       	sub	r26, r22
+ 1b0:	b7 0b       	sbc	r27, r23
+
+000001b2 <__udivmodhi4_ep>:
+ 1b2:	88 1f       	adc	r24, r24
+ 1b4:	99 1f       	adc	r25, r25
+ 1b6:	5a 95       	dec	r21
+ 1b8:	a9 f7       	brne	.-22     	; 0x1a4 <__udivmodhi4_loop>
+ 1ba:	80 95       	com	r24
+ 1bc:	90 95       	com	r25
+ 1be:	bc 01       	movw	r22, r24
+ 1c0:	cd 01       	movw	r24, r26
+ 1c2:	08 95       	ret
+
+000001c4 <_exit>:
+ 1c4:	f8 94       	cli
+
+000001c6 <__stop_program>:
+ 1c6:	ff cf       	rjmp	.-2      	; 0x1c6 <__stop_program>

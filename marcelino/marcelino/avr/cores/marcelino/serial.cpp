@@ -27,10 +27,10 @@ Serial::Serial(uint16_t rate) {
 void Serial::mode(uint8_t _mode) {
 		UCSR0C &= ~(3<<UMSEL01);
 		UCSR0C |= (_mode<<UMSEL00);
-		this->test_mode = 0;
+		test_mode = 0;
 		if(_mode) {
 			XCLK_DDR|=(1<<XCLK_PIN);
-			this->test_mode = 1;
+			test_mode = 1;
 		}
 }
 
@@ -62,7 +62,7 @@ void Serial::parity(uint8_t _mode) {
 }
 
 void Serial::baud(uint16_t rate) {
-	if(this->test_mode) {
+	if(test_mode) {
 		UBRR0H = (uint8_t)(F_CPU/2/rate-1)>>8;
 		UBRR0L = (uint8_t)(F_CPU/2/rate-1);
 	}
