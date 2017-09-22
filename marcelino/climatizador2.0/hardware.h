@@ -60,27 +60,37 @@
       ADC: Conversor Analogico Digital, realiza a leitura de A2 (sensor de temperatura) e A3 (teclado)
       TWI: Comunicacao a 2 fios para controle de atuadores e display LCD 16x2 com CI PCF8574, leitura do relogio de tempo real e temperatura com CI DS3231, Bit Rate 400kHz.
       UART: Comunicacao Assincrona com dois fios em protocolo RS232 (Universal Asynchronous Receiver/Transmitter), Baud Rate 9600, 8bits + 1bit parada sem bit de paridade.
+
+    Reles PCF8574:
+      Pino 0: Velocidade 1 da ventilacao
+      Pino 1: Velocidade 2 da ventilacao
+      Pino 2: Velocidade 3 da ventilacao
+      Pino 3: Bomba de agua
+      Pino 4: Direcionamento vertical
+      Pino 5: Gerador de Anions
+      Pino 6: Nada implementado (livre)
+      Pino 7: Sinalização de reservatorio com nivel baixo
     
 
 ***************************************************************************************************************************/
 
 // === Endereco TWI do CI PCF8574A (0100 A2 A1 A0 R/~W) ===
 
-#define relayADDRESS (0b01000010)    //endereco do controle dos reles
-#define displayADDRESS (0b01000000)  //endereco do display
+#define relayADDRESS (0b01000000)    //endereco do controle dos reles
+#define displayADDRESS (0b01001110)  //endereco do display
 
 
 // === Nome para as constantes do reservatorio ===
 // escalas em milimetros e mililitros, alterar escalas em 'medirVolume.h'
 
 //volume minimo e medio para o reservatorio
-#define nivelMIN                  100
-#define nivelMED                  130
+#define nivelMIN                  0.6
+#define nivelMED                  1
 
 //caracteristicas do reservatorio
-#define alturaReservatorio        60
-#define comprimentoReservatorio   7.668711
-#define larguraReservatorio       1
+#define alturaReservatorio        80
+#define comprimentoReservatorio   255
+#define larguraReservatorio       210
 
 
 // === Pinos do Arduino ===
@@ -121,10 +131,9 @@
 
 #define bombaDagua          3  //rele de bomba de agua
 #define direcaoVertical     4  //palhetas de direcionamento verticais da ventilacao
+#define geradorAnion        5  //rele de gerador de anion
 
-//alguns pinos livres, estou usando o livre1 para sinalizar a ventilacao em modo automatico (completamente desnecessario, mas se ta livre vamo usa)
-#define livre1              5  //rele livre
-#define livre2              6  //rele livre
+#define livre               6  //rele livre
 
 //sinaliza nivel baixo do reservatorio
 #define pinSinalizacao      7  //rele de led de sinalizacao

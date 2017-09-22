@@ -35,56 +35,53 @@
 void medirVolume() {
 
   //aciona sensor ultrassom
+  digital.mode(pinUltrason, OUTPUT);
   digital.write(pinUltrason, OFF);
   delay.us(2);
   digital.write(pinUltrason, ON);
   delay.us(10);
   digital.write(pinUltrason, OFF);
 
-  uint32_t pulso = pulse.in(pinEcho,HIGH, 30);  //realiza a leitura da largura do pulso largura em ms
+  uint32_t pulso = pulse.in(pinEcho, HIGH, 30); //realiza a leitura da largura do pulso largura em ms
 
   /*
      Calculo das distancias do sensor ultrassonico
-     
+
      Distancia[m] = Largura do Pulso[s] * Velocidade do Som[m/s] / 2
   */
 
-  reservatorio.milimetros = pulso * 0.17145;
-  //serial.print("Largura de pulso: ");
-  //serial.println(reservatorio.milimetros);
+  reservatorio.metros = pulso * 171.45;
+  serial.print("Largura de pulso: ");
+  serial.println(reservatorio.metros);
 
 
   if (pulso == 0)
     reservatorio.testes++;
   else
     reservatorio.testes = 0;
- 
+
   if (reservatorio.testes > 5)
     erro(erroSensorNivel);
 
-  //cm = mm * 10e-2
-  reservatorio.centimetros = reservatorio.milimetros * 1e-2;
-
-  //m = mm * 10e-3
-  reservatorio.metros = reservatorio.milimetros * 1e-3;
-
   //subtrai a altura do reservatorio da distancia medida pelo sensor
-  float alturaAgua = alturaReservatorio - reservatorio.milimetros;
+  float alturaAgua = alturaReservatorio - reservatorio.metros;
 
   //Evita valores negativos para no nivel de agua
   if (alturaAgua < 0.0)
     alturaAgua = 0;
 
   //Calcula o volume do reservatorio com base nas caracteristicas fisicas
-  reservatorio.mililitros = alturaAgua * comprimentoReservatorio * larguraReservatorio;
-  reservatorio.centilitros = reservatorio.mililitros / 10.0;
-  reservatorio.litros = reservatorio.mililitros / 1000.0;
+  reservatorio.metrocubico = alturaAgua * comprimentoReservatorio * larguraReservatorio / 1000;
+  reservatorio.litros = reservatorio.metrocubico / 1000.0;
 
-  if ( reservatorio.mililitros < nivelMIN )		    //Se o nivel de agua esta abaixo do predeterminado
+  if ( reservatorio.litros < nivelMIN )		    //Se o nivel de agua esta abaixo do predeterminado
     controle.reservatorio(NBAIXO);			          //Indica nivel baixo do reservatorio
 
-  else if ( reservatorio.mililitros > nivelMED )	//Se o nivel de agua esta acima do predeterminado
+  else if ( reservatorio.litros > nivelMED )	//Se o nivel de agua esta acima do predeterminado
     controle.reservatorio(NALTO);			            //Indica nivel alto do reservatorio
+
+  serial.print("Nível: ");
+  serial.println(reservatorio.litros);
 
 }//fim da funcao medirVolume
 

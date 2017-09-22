@@ -3,8 +3,8 @@
   Autor: Marcelo Henrique Moraes
   E-mail: marceloh220@hotmail.com
   Data: 5, abr. 2017
-  Ultima Revisao: 16, jun. 2017
-  Revisao Atual: 3, ago. 2017
+  Ultima Revisao: 3, ago. 2017
+  Revisao Atual: 21, set. 2017
   Copyright (c) 2017 Marcelo Henrique Moraes
 
   Projeto Casa Sustentavel: Climatizador de AR
@@ -306,7 +306,6 @@ void loop() {
   if ( (temporizacao.millis - temporizacao.ms10) >= 10) {  //Testa se passou 10ms
 
     acionamentos();                                   //Chama funcao de acoes de controle
-    mostra[mostraPTR]();                              //Chama funcao alocada na posicao do ponteiro mostra
 
     temporizacao.ms10 = temporizacao.millis;               //Salva o tempo atual para nova tarefa apos 10ms
 
@@ -326,6 +325,8 @@ void loop() {
 
   //Tarefa realizada a cada 500 milisegundo
   if ( (temporizacao.millis - temporizacao.ms500) >= 500) {  //Testa se passou 500ms
+
+    mostra[mostraPTR]();                              //Chama funcao alocada na posicao do ponteiro mostra
 
     //verifica se foi requerido entrada em modo de baixo consumo
     if (teste.ifset(progOFF)) {

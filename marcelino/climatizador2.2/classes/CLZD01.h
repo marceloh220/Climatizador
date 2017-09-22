@@ -8,34 +8,37 @@ class CLZD: private Digital {
   private:
     uint8_t data, clock;
     uint16_t temp;
+    uint8_t paridade;
+
+    void pulse() {
+      Digital::write(clock, HIGH);
+        _delay_us(8);
+        Digital::write(clock, LOW);
+        nop();
+    }
 
     void com() {
       uint16_t aux = 0;
-      uint8_t paridade;
       uint8_t j = 9;
       for (int i = 0; i < 10; i++) {
-        Digital::write(clock, HIGH);
-        _delay_us(7);
-        Digital::write(clock, LOW);
-        nop();
+        this->pulse();
         if (Digital::read(data)) {
           _delay_us(1);
           if (Digital::read(data)) {
             aux |= (1 << j);
-            paridade++;
+            this->paridade++;
           }
         }
         j--;
       }
-      Digital::write(clock, HIGH);
-      _delay_us(5);
-      uint8_t par = paridade % 2;
-      if (par == Digital::read(data)) {
+      this->pulse();
+      this->paridade %= 2;
+      if (this->paridade == Digital::read(data)) {
         _delay_us(1);
-        if (par == Digital::read(data))
+        if (this->paridade == Digital::read(data))
           this->temp = aux;
       }
-      Digital::write(clock, LOW);
+      this->paridade = 0;
     }
 
   public:
@@ -50,7 +53,7 @@ class CLZD: private Digital {
 
     float read() {
       this->com();
-      return this->temp*0.2323558;
+      return this->temp * 0.2124;
     }
 
 };
